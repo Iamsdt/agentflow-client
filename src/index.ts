@@ -12,3 +12,8 @@ export * from './endpoints/graph.js';
 
 // Export shared metadata types
 export * from './endpoints/metadata.js';
+
+// Export Agent class
+export * from './agent.js';
+
+export * from './message.js';
