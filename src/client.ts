@@ -1,4 +1,4 @@
-import { ToolDefinition } from '../tools';
+import { ToolDefinition } from './tools';
 import { ping, PingContext, PingResponse } from './endpoints/ping.js';
 import { graph, GraphContext, GraphResponse } from './endpoints/graph.js';
 
