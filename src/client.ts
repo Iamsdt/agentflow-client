@@ -1,12 +1,20 @@
-import { ToolDefinition } from './tools';
+import { ToolDefinition, ToolRegistration, ToolExecutor } from './tools.js';
+import { Message } from './message.js';
 import { ping, PingContext, PingResponse } from './endpoints/ping.js';
 import { graph, GraphContext, GraphResponse } from './endpoints/graph.js';
 import { stateSchema, StateSchemaContext, StateSchemaResponse } from './endpoints/stateSchema.js';
+import { 
+    invoke as invokeEndpoint, 
+    InvokeContext, 
+    InvokeRequest, 
+    InvokeResult,
+    InvokeCallback,
+    InvokePartialResult
+} from './endpoints/invoke.js';
 
 export interface AgentFlowConfig {
     baseUrl: string;
     authToken?: string | null;
-    tools?: ToolDefinition[];
     timeout?: number; // default 5min
     debug?: boolean;
 }
@@ -16,12 +24,43 @@ export class AgentFlowClient {
     private authToken?: string | null;
     private timeout: number;
     private debug: boolean;
+    private toolExecutor: ToolExecutor;
+    private toolRegistrations: ToolRegistration[];
 
     constructor(config: AgentFlowConfig) {
         this.baseUrl = config.baseUrl;
         this.authToken = config.authToken;
         this.timeout = config.timeout || 300000; // 5 min
         this.debug = config.debug || false;
+        this.toolExecutor = new ToolExecutor([]);
+        this.toolRegistrations = [];
+    }
+
+    /**
+     * Register a tool for remote execution
+     */
+    registerTool(registration: ToolRegistration): void {
+        this.toolRegistrations.push(registration);
+        this.toolExecutor.registerTool(registration);
+        
+        if (this.debug) {
+            console.debug(`AgentFlowClient: Registered tool '${registration.name}' for node '${registration.node}'`);
+        }
+    }
+
+    /**
+     * Setup tools on the server (dummy implementation for now)
+     * In the future, this will send tool definitions to the server
+     */
+    async setup(): Promise<void> {
+        if (this.debug) {
+            console.debug('AgentFlowClient: Setting up tools on server (dummy implementation)');
+            console.debug(`AgentFlowClient: ${this.toolRegistrations.length} tools registered`);
+        }
+        
+        // TODO: Implement actual server setup when backend is ready
+        // For now, this is a no-op
+        return Promise.resolve();
     }
 
     async ping(): Promise<PingResponse> {
@@ -55,5 +94,100 @@ export class AgentFlowClient {
         };
 
         return stateSchema(context);
+    }
+
+    /**
+     * Invoke the agent graph with automatic tool execution loop
+     * @param messages - Array of messages to send
+     * @param options - Invoke options
+     * @returns InvokeResult with all messages and intermediate steps
+     */
+    async invoke(
+        messages: Message[],
+        options?: {
+            initial_state?: Record<string, any>;
+            config?: Record<string, any>;
+            recursion_limit?: number;
+            response_granularity?: 'full' | 'partial' | 'low';
+            onPartialResult?: InvokeCallback;
+        }
+    ): Promise<InvokeResult> {
+        const context: InvokeContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug,
+            toolExecutor: this.toolExecutor
+        };
+
+        // Prepare request
+        const request: InvokeRequest = {
+            messages: messages.map(msg => this.serializeMessage(msg)),
+            initial_state: options?.initial_state,
+            config: options?.config,
+            recursion_limit: options?.recursion_limit || 25,
+            response_granularity: options?.response_granularity || 'full'
+        };
+
+        // Call the invoke endpoint (which handles the recursion loop)
+        return invokeEndpoint(context, request, options?.onPartialResult);
+    }
+
+    /**
+     * Serialize a Message object for API transmission
+     * Converts Message class instances to plain objects
+     */
+    private serializeMessage(message: Message): any {
+        const serialized: any = {
+            role: message.role,
+            content: this.cleanContent(message.content)
+        };
+
+        // message_id: use 0 if not set (server will generate one)
+        if (message.message_id !== null && message.message_id !== undefined) {
+            serialized.message_id = message.message_id;
+        } else {
+            serialized.message_id = 0;
+        }
+
+        // Only include optional fields if they are explicitly set
+        if (message.tools_calls) {
+            serialized.tools_calls = message.tools_calls;
+        }
+        if (message.metadata && Object.keys(message.metadata).length > 0) {
+            serialized.metadata = message.metadata;
+        }
+
+        return serialized;
+    }
+
+    /**
+     * Clean content blocks by removing empty arrays and undefined values
+     * Also simplify to string format if it's a simple text message
+     */
+    private cleanContent(content: any[]): any {
+        // If it's a single text block, send as string
+        if (content.length === 1 && content[0].type === 'text') {
+            return content[0].text;
+        }
+        
+        // Otherwise send as array of blocks
+        return content.map(block => {
+            const cleaned: any = {};
+            
+            for (const [key, value] of Object.entries(block)) {
+                // Skip empty arrays
+                if (Array.isArray(value) && value.length === 0) {
+                    continue;
+                }
+                // Skip undefined values
+                if (value === undefined) {
+                    continue;
+                }
+                cleaned[key] = value;
+            }
+            
+            return cleaned;
+        });
     }
 }
