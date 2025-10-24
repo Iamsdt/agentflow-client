@@ -16,6 +16,9 @@ export * from './endpoints/stateSchema.js';
 // Export invoke types
 export * from './endpoints/invoke.js';
 
+// Export stream types
+export * from './endpoints/stream.js';
+
 // Export shared metadata types
 export * from './endpoints/metadata.js';
 

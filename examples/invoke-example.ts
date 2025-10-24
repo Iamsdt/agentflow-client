@@ -98,10 +98,12 @@ async function main() {
     // 4. Repeat until no more tool calls or recursion_limit is reached
     const result = await client.invoke(
         messages,
-        {}, // initial_state
-        {}, // config
-        25, // recursion_limit
-        'full' // response_granularity
+        {
+            initial_state: {},
+            config: {},
+            recursion_limit: 25,
+            response_granularity: 'full'
+        }
     );
 
     console.log('\n=== Invoke Result ===');

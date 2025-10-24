@@ -11,6 +11,13 @@ import {
     InvokeCallback,
     InvokePartialResult
 } from './endpoints/invoke.js';
+import {
+    streamInvoke as streamInvokeEndpoint,
+    StreamContext,
+    StreamRequest,
+    StreamChunk,
+    StreamEventType
+} from './endpoints/stream.js';
 
 export interface AgentFlowConfig {
     baseUrl: string;
@@ -131,6 +138,60 @@ export class AgentFlowClient {
 
         // Call the invoke endpoint (which handles the recursion loop)
         return invokeEndpoint(context, request, options?.onPartialResult);
+    }
+
+    /**
+     * Stream invoke to the agent graph
+     * Returns an async iterable that yields stream chunks as they arrive
+     * 
+     * @param messages - Array of messages to send
+     * @param options - Stream options
+     * @returns AsyncGenerator of StreamChunk objects
+     * 
+     * @example
+     * ```ts
+     * const stream = client.streamInvoke([userMessage], { 
+     *   initial_state: {}, 
+     *   response_granularity: 'low' 
+     * });
+     * 
+     * for await (const chunk of stream) {
+     *   if (chunk.event === 'message') {
+     *     console.log('Message:', chunk.message?.content);
+     *   } else if (chunk.event === 'updates') {
+     *     console.log('State updated:', chunk.state);
+     *   }
+     * }
+     * ```
+     */
+    stream(
+        messages: Message[],
+        options?: {
+            initial_state?: Record<string, any>;
+            config?: Record<string, any>;
+            recursion_limit?: number;
+            response_granularity?: 'full' | 'partial' | 'low';
+        }
+    ): AsyncGenerator<StreamChunk, void, unknown> {
+        const context: StreamContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug,
+            toolExecutor: this.toolExecutor
+        };
+
+        // Prepare request
+        const request: StreamRequest = {
+            messages: messages.map(msg => this.serializeMessage(msg)),
+            initial_state: options?.initial_state,
+            config: options?.config,
+            recursion_limit: options?.recursion_limit || 25,
+            response_granularity: options?.response_granularity || 'low'
+        };
+
+        // Return async generator from the stream endpoint
+        return streamInvokeEndpoint(context, request);
     }
 
     /**
