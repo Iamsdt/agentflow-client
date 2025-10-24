@@ -4,6 +4,7 @@ import { ping, PingContext, PingResponse } from './endpoints/ping.js';
 import { graph, GraphContext, GraphResponse } from './endpoints/graph.js';
 import { stateSchema, StateSchemaContext, StateSchemaResponse } from './endpoints/stateSchema.js';
 import { threadState, ThreadStateContext, ThreadStateResponse } from './endpoints/threadState.js';
+import { updateThreadState, UpdateThreadStateContext, UpdateThreadStateRequest, UpdateThreadStateResponse } from './endpoints/updateThreadState.js';
 import { 
     invoke as invokeEndpoint, 
     InvokeContext, 
@@ -118,6 +119,33 @@ export class AgentFlowClient {
         };
 
         return threadState(context, threadId);
+    }
+
+    /**
+     * Update the state of a specific thread (checkpoint)
+     * @param threadId - The ID of the thread to update
+     * @param config - Configuration map for the thread
+     * @param state - New AgentState for the thread
+     * @returns UpdateThreadStateResponse with the updated state
+     */
+    async updateThreadState(
+        threadId: number,
+        config: Record<string, any>,
+        state: any // AgentState
+    ): Promise<UpdateThreadStateResponse> {
+        const context: UpdateThreadStateContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: UpdateThreadStateRequest = {
+            config,
+            state
+        };
+
+        return updateThreadState(context, threadId, request);
     }
 
     /**
