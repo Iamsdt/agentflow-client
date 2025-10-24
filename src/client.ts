@@ -5,6 +5,7 @@ import { graph, GraphContext, GraphResponse } from './endpoints/graph.js';
 import { stateSchema, StateSchemaContext, StateSchemaResponse } from './endpoints/stateSchema.js';
 import { threadState, ThreadStateContext, ThreadStateResponse } from './endpoints/threadState.js';
 import { updateThreadState, UpdateThreadStateContext, UpdateThreadStateRequest, UpdateThreadStateResponse } from './endpoints/updateThreadState.js';
+import { clearThreadState, ClearThreadStateContext, ClearThreadStateResponse } from './endpoints/clearThreadState.js';
 import { 
     invoke as invokeEndpoint, 
     InvokeContext, 
@@ -72,6 +73,10 @@ export class AgentFlowClient {
         return Promise.resolve();
     }
 
+    
+    /**
+     * Ping the server to check connectivity
+     */
     async ping(): Promise<PingResponse> {
         const context: PingContext = {
             baseUrl: this.baseUrl,
@@ -83,6 +88,9 @@ export class AgentFlowClient {
         return ping(context);
     }
 
+    /**
+     * Fetch the agent graph 
+     */
     async graph(): Promise<GraphResponse> {
         const context: GraphContext = {
             baseUrl: this.baseUrl,
@@ -94,6 +102,9 @@ export class AgentFlowClient {
         return graph(context);
     }
 
+    /**
+     * Fetch the state schema of the agent
+     */
     async graphStateSchema(): Promise<StateSchemaResponse> {
         const context: StateSchemaContext = {
             baseUrl: this.baseUrl,
@@ -146,6 +157,22 @@ export class AgentFlowClient {
         };
 
         return updateThreadState(context, threadId, request);
+    }
+
+    /**
+     * Clear the state of a specific thread (delete checkpoint)
+     * @param threadId - The ID of the thread to clear state for
+     * @returns ClearThreadStateResponse with the clear operation result
+     */
+    async clearThreadState(threadId: number): Promise<ClearThreadStateResponse> {
+        const context: ClearThreadStateContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        return clearThreadState(context, threadId);
     }
 
     /**

@@ -19,6 +19,9 @@ export * from './endpoints/threadState.js';
 // Export update thread state Response types
 export * from './endpoints/updateThreadState.js';
 
+// Export clear thread state Response types
+export * from './endpoints/clearThreadState.js';
+
 // Export invoke types
 export * from './endpoints/invoke.js';
 
