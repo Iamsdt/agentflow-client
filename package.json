@@ -9,7 +9,11 @@
     "build": "tsc && vite build && cp -r dist-types/* dist/",
     "dev": "vite build --watch",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage",
+    "coverage:open": "vitest run --coverage && xdg-open coverage/index.html"
   },
   "dependencies": {
     "react": "^18.0.0"
