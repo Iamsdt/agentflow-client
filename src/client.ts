@@ -6,6 +6,8 @@ import { stateSchema, StateSchemaContext, StateSchemaResponse } from './endpoint
 import { threadState, ThreadStateContext, ThreadStateResponse } from './endpoints/threadState.js';
 import { updateThreadState, UpdateThreadStateContext, UpdateThreadStateRequest, UpdateThreadStateResponse } from './endpoints/updateThreadState.js';
 import { clearThreadState, ClearThreadStateContext, ClearThreadStateResponse } from './endpoints/clearThreadState.js';
+import { checkpointMessages, CheckpointMessagesContext, CheckpointMessagesRequest, CheckpointMessagesResponse } from './endpoints/checkpointMessages.js';
+import { threadMessage, ThreadMessageContext, ThreadMessageRequest, ThreadMessageResponse } from './endpoints/threadMessage.js';
 import { 
     invoke as invokeEndpoint, 
     InvokeContext, 
@@ -173,6 +175,62 @@ export class AgentFlowClient {
         };
 
         return clearThreadState(context, threadId);
+    }
+
+    /**
+     * Fetch messages from a specific thread with optional search and pagination
+     * @param threadId - The ID of the thread to fetch messages from
+     * @param search - Optional search term to filter messages
+     * @param offset - Optional offset for pagination (default 0)
+     * @param limit - Optional limit for pagination (default no limit)
+     * @returns CheckpointMessagesResponse containing the messages and metadata
+     */
+    async checkpointMessages(
+        threadId: string | number,
+        search?: string,
+        offset?: number,
+        limit?: number
+    ): Promise<CheckpointMessagesResponse> {
+        const context: CheckpointMessagesContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: CheckpointMessagesRequest = {
+            threadId,
+            search,
+            offset,
+            limit
+        };
+
+        return checkpointMessages(context, request);
+    }
+
+    /**
+     * Fetch a specific message from a thread by message ID
+     * @param threadId - The ID of the thread
+     * @param messageId - The ID of the message to fetch
+     * @returns ThreadMessageResponse containing the message and metadata
+     */
+    async threadMessage(
+        threadId: string | number,
+        messageId: string
+    ): Promise<ThreadMessageResponse> {
+        const context: ThreadMessageContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: ThreadMessageRequest = {
+            threadId,
+            messageId
+        };
+
+        return threadMessage(context, request);
     }
 
     /**

@@ -10,21 +10,36 @@ Steps:
 
 
 Here is the api:
-curl -X 'DELETE' \
-  'http://127.0.0.1:8000/v1/threads/5/state' \
+curl -X 'GET' \
+  'http://127.0.0.1:8000/v1/threads/5/messages/39dff7f2-b300-465a-82a3-3985b7c8bc81' \
   -H 'accept: application/json'
 
 
 Response:
 {
   "data": {
-    "success": true,
-    "message": "State cleared successfully",
-    "data": true
+    "message_id": "39dff7f2-b300-465a-82a3-3985b7c8bc81",
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "HI",
+        "annotations": []
+      }
+    ],
+    "delta": false,
+    "tools_calls": null,
+    "reasoning": null,
+    "timestamp": 1761301570.507072,
+    "metadata": {},
+    "usages": null,
+    "raw": null
   },
   "metadata": {
-    "request_id": "07471cf8-0d95-4f4f-af23-619d1011a465",
-    "timestamp": "2025-10-24T15:59:17.683517",
+    "request_id": "3dd8d66c-e9eb-4a2f-ac43-4548dab7b510",
+    "timestamp": "2025-10-24T16:34:26.333220",
     "message": "OK"
   }
 }
+
+Here data is the message object.

@@ -22,6 +22,12 @@ export * from './endpoints/updateThreadState.js';
 // Export clear thread state Response types
 export * from './endpoints/clearThreadState.js';
 
+// Export checkpoint messages Response types
+export * from './endpoints/checkpointMessages.js';
+
+// Export thread message Response types
+export * from './endpoints/threadMessage.js';
+
 // Export invoke types
 export * from './endpoints/invoke.js';
 
