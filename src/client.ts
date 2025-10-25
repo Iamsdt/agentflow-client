@@ -185,7 +185,7 @@ export class AgentFlowClient {
      * @param limit - Optional limit for pagination (default no limit)
      * @returns CheckpointMessagesResponse containing the messages and metadata
      */
-    async checkpointMessages(
+    async threadMessages(
         threadId: string | number,
         search?: string,
         offset?: number,
@@ -214,7 +214,7 @@ export class AgentFlowClient {
      * @param messageId - The ID of the message to fetch
      * @returns ThreadMessageResponse containing the message and metadata
      */
-    async threadMessage(
+    async singleMessage(
         threadId: string | number,
         messageId: string
     ): Promise<ThreadMessageResponse> {
