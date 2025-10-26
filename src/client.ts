@@ -52,6 +52,12 @@ import {
     UpdateMemoryRequest,
     UpdateMemoryResponse
 } from './endpoints/updateMemory.js';
+import {
+    deleteMemory as deleteMemoryEndpoint,
+    DeleteMemoryContext,
+    DeleteMemoryRequest,
+    DeleteMemoryResponse
+} from './endpoints/deleteMemory.js';
 
 export interface AgentFlowConfig {
     baseUrl: string;
@@ -616,6 +622,42 @@ export class AgentFlowClient {
         };
 
         return updateMemoryEndpoint(context, request);
+    }
+
+    /**
+     * Delete a memory by ID
+     * 
+     * @param memoryId - The ID of the memory to delete
+     * @param options - Optional config and options
+     * @returns Promise<DeleteMemoryResponse> containing success status and deletion confirmation
+     * 
+     * @example
+     * ```ts
+     * const result = await client.deleteMemory('mem-12345', {
+     *   config: { soft_delete: true }
+     * });
+     * console.log('Delete success:', result.data.success);
+     * console.log('Deleted:', result.data.data);
+     * ```
+     */
+    async deleteMemory(
+        memoryId: string,
+        options?: { config?: Record<string, any>; options?: Record<string, any> }
+    ): Promise<DeleteMemoryResponse> {
+        const context: DeleteMemoryContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: DeleteMemoryRequest = {
+            memoryId,
+            config: options?.config,
+            options: options?.options
+        };
+
+        return deleteMemoryEndpoint(context, request);
     }
 
     /**

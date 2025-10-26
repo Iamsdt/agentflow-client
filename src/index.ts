@@ -60,6 +60,9 @@ export * from './endpoints/getMemory.js';
 // Export update memory types
 export * from './endpoints/updateMemory.js';
 
+// Export delete memory types
+export * from './endpoints/deleteMemory.js';
+
 // Export shared metadata types
 export * from './endpoints/metadata.js';
 
