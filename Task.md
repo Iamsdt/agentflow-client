@@ -9,33 +9,24 @@ Steps:
 7. Update check.ts file to include the new api
 
 
-Here is the api:
-curl -X 'POST' \
-  'http://127.0.0.1:8000/v1/store/memories/56565' \
+Here is the api: Update Memory
+curl -X 'PUT' \
+  'http://127.0.0.1:8000/v1/store/memories/uuid' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
   "config": {},
-  "options": {}
+  "options": {},
+  "content": "string",
+  "metadata": {}
 }'
 
 
 Response:
 {
   "data": {
-    "memory": {
-      "id": "string",
-      "content": "",
-      "score": 0,
-      "memory_type": "episodic",
-      "metadata": {},
-      "vector": [
-        0
-      ],
-      "user_id": "string",
-      "thread_id": "string",
-      "timestamp": "2025-10-26T07:05:48.277Z"
-    }
+    "success": true,
+    "data": object
   },
   "metadata": {
     "message": "Success",

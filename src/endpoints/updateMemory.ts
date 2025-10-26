@@ -1,0 +1,89 @@
+import { ResponseMetadata } from './metadata.js';
+import { createErrorFromResponse } from '../errors.js';
+
+export interface UpdateMemoryContext {
+    baseUrl: string;
+    authToken?: string | null;
+    timeout: number;
+    debug: boolean;
+}
+
+export interface UpdateMemoryRequest {
+    memoryId: string;
+    config?: Record<string, any>;
+    options?: Record<string, any>;
+    content: string;
+    metadata?: Record<string, any>;
+}
+
+export interface UpdateMemoryData {
+    success: boolean;
+    data: Record<string, any>;
+}
+
+export interface UpdateMemoryResponse {
+    data: UpdateMemoryData;
+    metadata: ResponseMetadata;
+}
+
+export async function updateMemory(
+    context: UpdateMemoryContext,
+    request: UpdateMemoryRequest
+): Promise<UpdateMemoryResponse> {
+    try {
+        if (context.debug) {
+            console.debug('AgentFlowClient: Updating memory with ID:', request.memoryId);
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), context.timeout);
+
+        const url = `${context.baseUrl}/v1/store/memories/${request.memoryId}`;
+
+        // Prepare request body
+        const body = {
+            config: request.config || {},
+            options: request.options || {},
+            content: request.content,
+            metadata: request.metadata || {}
+        };
+
+        if (context.debug) {
+            console.debug('AgentFlowClient: Request payload:', JSON.stringify(body, null, 2));
+        }
+
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(context.authToken && { 'Authorization': `Bearer ${context.authToken}` })
+            },
+            body: JSON.stringify(body),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            console.warn(`AgentFlowClient: Update memory failed with HTTP ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Update memory request failed');
+            throw error;
+        }
+
+        const data: UpdateMemoryResponse = await response.json();
+
+        if (context.debug) {
+            console.info('AgentFlowClient: Memory updated successfully', {
+                memory_id: request.memoryId,
+                success: data.data.success
+            });
+        }
+
+        return data;
+    } catch (error) {
+        if (context.debug) {
+            console.debug('AgentFlowClient: Update memory failed:', error);
+        }
+        throw error;
+    }
+}

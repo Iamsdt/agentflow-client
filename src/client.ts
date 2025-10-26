@@ -46,6 +46,12 @@ import {
     GetMemoryRequest,
     GetMemoryResponse
 } from './endpoints/getMemory.js';
+import {
+    updateMemory as updateMemoryEndpoint,
+    UpdateMemoryContext,
+    UpdateMemoryRequest,
+    UpdateMemoryResponse
+} from './endpoints/updateMemory.js';
 
 export interface AgentFlowConfig {
     baseUrl: string;
@@ -571,6 +577,45 @@ export class AgentFlowClient {
         };
 
         return getMemoryEndpoint(context, request);
+    }
+
+    /**
+     * Update an existing memory by ID
+     * 
+     * @param memoryId - The ID of the memory to update
+     * @param content - The updated content for the memory
+     * @param options - Optional config, options, and metadata
+     * @returns Promise<UpdateMemoryResponse> containing success status and updated data
+     * 
+     * @example
+     * ```ts
+     * const result = await client.updateMemory('mem-12345', 'Updated content', {
+     *   metadata: { tags: ['important', 'updated'] }
+     * });
+     * console.log('Update success:', result.data.success);
+     * ```
+     */
+    async updateMemory(
+        memoryId: string,
+        content: string,
+        options?: { config?: Record<string, any>; options?: Record<string, any>; metadata?: Record<string, any> }
+    ): Promise<UpdateMemoryResponse> {
+        const context: UpdateMemoryContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: UpdateMemoryRequest = {
+            memoryId,
+            content,
+            config: options?.config,
+            options: options?.options,
+            metadata: options?.metadata
+        };
+
+        return updateMemoryEndpoint(context, request);
     }
 
     /**
