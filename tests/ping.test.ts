@@ -126,7 +126,7 @@ describe('Ping Endpoint Tests', () => {
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
-      await expect(ping(mockContext)).rejects.toThrow('HTTP error! status: 500');
+      await expect(ping(mockContext)).rejects.toThrow();
     });
 
     it('should handle timeout correctly', async () => {

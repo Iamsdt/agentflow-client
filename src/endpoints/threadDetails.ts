@@ -1,4 +1,5 @@
 import { ResponseMetadata } from './metadata.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface ThreadDetailsContext {
     baseUrl: string;
@@ -50,7 +51,8 @@ export async function threadDetails(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Thread details fetch failed with HTTP ${response.status}`);
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Thread details fetch failed');
+            throw error;
         }
 
         const data: ThreadDetailsResponse = await response.json();

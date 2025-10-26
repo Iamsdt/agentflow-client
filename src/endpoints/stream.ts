@@ -1,6 +1,7 @@
 import { Message } from '../message.js';
 import { AgentState } from '../agent.js';
 import { ToolExecutor } from '../tools.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface StreamContext {
     baseUrl: string;
@@ -227,8 +228,8 @@ async function makeSingleStreamCall(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Stream failed with HTTP ${response.status}`);
-            const errorText = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+            const error = await createErrorFromResponse(response, 'Stream request failed');
+            throw error;
         }
 
         if (!response.body) {
@@ -347,8 +348,8 @@ export async function* streamInvoke(
 
             if (!response.ok) {
                 console.warn(`AgentFlowClient: Stream failed with HTTP ${response.status}`);
-                const errorText = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+                const error = await createErrorFromResponse(response, 'Stream request failed');
+                throw error;
             }
 
             if (!response.body) {

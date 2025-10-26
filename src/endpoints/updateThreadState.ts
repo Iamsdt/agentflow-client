@@ -1,5 +1,6 @@
 import { ResponseMetadata } from './metadata.js';
 import { AgentState } from '../agent.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface UpdateThreadStateContext {
     baseUrl: string;
@@ -51,8 +52,8 @@ export async function updateThreadState(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Thread state update failed with HTTP ${response.status}`);
-            const errorText = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+            const error = await createErrorFromResponse(response, 'Thread state update failed');
+            throw error;
         }
 
         const data: UpdateThreadStateResponse = await response.json();

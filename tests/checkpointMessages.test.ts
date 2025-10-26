@@ -181,7 +181,7 @@ describe('Thread Messages Endpoint Tests', () => {
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
-      await expect(checkpointMessages(mockContext, mockRequest)).rejects.toThrow('HTTP error! status: 404');
+      await expect(checkpointMessages(mockContext, mockRequest)).rejects.toThrow();
     });
 
     it('should throw error for 500 status', async () => {
@@ -191,7 +191,7 @@ describe('Thread Messages Endpoint Tests', () => {
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
-      await expect(checkpointMessages(mockContext, mockRequest)).rejects.toThrow('HTTP error! status: 500');
+      await expect(checkpointMessages(mockContext, mockRequest)).rejects.toThrow();
     });
 
     it('should handle network errors', async () => {

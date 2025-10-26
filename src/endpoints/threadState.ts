@@ -1,5 +1,6 @@
 import { ResponseMetadata } from './metadata.js';
 import { AgentState } from '../agent.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface ThreadStateContext {
     baseUrl: string;
@@ -43,7 +44,8 @@ export async function threadState(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Thread state fetch failed with HTTP ${response.status}`);
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Thread state fetch failed');
+            throw error;
         }
 
         const data: ThreadStateResponse = await response.json();

@@ -4,6 +4,9 @@ export * from './tools.js';
 // Re-export client functionality
 export * from './client.js';
 
+// Export error types and classes
+export * from './errors.js';
+
 // Export ping Response types
 export * from './endpoints/ping.js';
 

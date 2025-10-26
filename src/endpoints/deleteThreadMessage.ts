@@ -1,4 +1,5 @@
 import { ResponseMetadata } from './metadata.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface DeleteThreadMessageContext {
     baseUrl: string;
@@ -59,7 +60,8 @@ export async function deleteThreadMessage(
             console.warn(
                 `AgentFlowClient: Delete thread message failed with HTTP ${response.status}`
             );
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Delete thread message failed');
+            throw error;
         }
 
         const data: DeleteThreadMessageResponse = await response.json();

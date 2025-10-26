@@ -1,4 +1,5 @@
 import { ResponseMetadata } from './metadata.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface GraphContext {
     baseUrl: string;
@@ -68,7 +69,8 @@ export async function graph(context: GraphContext): Promise<GraphResponse> {
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Graph fetch failed with HTTP ${response.status}`);
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Graph fetch failed');
+            throw error;
         }
 
         const data: GraphResponse = await response.json();

@@ -1,5 +1,6 @@
 import { ResponseMetadata } from './metadata.js';
 import { Message } from '../message.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface AddThreadMessagesContext {
     baseUrl: string;
@@ -61,7 +62,8 @@ export async function addThreadMessages(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Add checkpoint messages failed with HTTP ${response.status}`);
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Add thread messages failed');
+            throw error;
         }
 
         const data: AddThreadMessagesResponse = await response.json();

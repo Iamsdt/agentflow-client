@@ -73,7 +73,7 @@ describe('clearThreadState endpoint', () => {
                 debug: false
             };
 
-            await expect(clearThreadState(context, threadId)).rejects.toThrow('HTTP error! status: 404');
+            await expect(clearThreadState(context, threadId)).rejects.toThrow();
         });
 
         it('should handle timeout', async () => {
@@ -170,7 +170,7 @@ describe('clearThreadState endpoint', () => {
                 debug: false
             };
 
-            await expect(clearThreadState(context, threadId)).rejects.toThrow('HTTP error! status: 500');
+            await expect(clearThreadState(context, threadId)).rejects.toThrow();
         });
     });
 

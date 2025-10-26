@@ -1,6 +1,7 @@
 import { Message } from '../message.js';
 import { AgentState } from '../agent.js';
 import { ToolExecutor } from '../tools.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface InvokeContext {
     baseUrl: string;
@@ -94,8 +95,8 @@ async function makeSingleInvokeCall(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Invoke failed with HTTP ${response.status}`);
-            const errorText = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+            const error = await createErrorFromResponse(response, 'Invoke request failed');
+            throw error;
         }
 
         const data: InvokeResponse = await response.json();

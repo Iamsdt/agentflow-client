@@ -1,4 +1,4 @@
-Task: Lets integrate Thread Delete
+Task: Lets integrate memory threads api into our codebase.
 Steps:
 1. Checking existing codebase all the api in a separate folder named endpoints
 2. Create a new files and write api logic there
@@ -10,32 +10,41 @@ Steps:
 
 
 Here is the api:
-curl -X 'GET' \
-  'http://127.0.0.1:8000/v1/threads?search=s&offset=0&limit=10' \
-  -H 'accept: application/json'
+curl -X 'POST' \
+  'http://127.0.0.1:8000/v1/store/memories' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "config": {},
+  "options": {},
+  "content": "string",
+  "memory_type": "episodic",
+  "category": "general",
+  "metadata": {}
+}'
 
+
+
+class MemoryType(Enum):
+    """Types of memories that can be stored."""
+
+    EPISODIC = "episodic"  # Conversation memories
+    SEMANTIC = "semantic"  # Facts and knowledge
+    PROCEDURAL = "procedural"  # How-to knowledge
+    ENTITY = "entity"  # Entity-based memories
+    RELATIONSHIP = "relationship"  # Entity relationships
+    CUSTOM = "custom"  # Custom memory types
+    DECLARATIVE = "declarative"  # Explicit facts and events
 
 
 Response:
 {
   "data": {
-    "threads": [
-      {
-        "thread_id": "5",
-        "thread_name": null,
-        "user_id": null,
-        "metadata": null,
-        "updated_at": null,
-        "run_id": null
-      }
-    ]
+    "memory_id": "string"
   },
   "metadata": {
-    "request_id": "76794838-1a00-4a0b-8a7e-d2247b1cccef",
-    "timestamp": "2025-10-26T01:38:12.094988",
-    "message": "OK"
+    "message": "Success",
+    "request_id": "e0c023e6066742b8bba8ad7990608018",
+    "timestamp": "2025-10-26T12:05:32.986050"
   }
 }
-
-For this example few values are null but in real scenario they will have values.
-it could be string, number, object etc.

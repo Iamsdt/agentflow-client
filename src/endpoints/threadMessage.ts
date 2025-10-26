@@ -1,5 +1,6 @@
 import { ResponseMetadata } from './metadata.js';
 import { Message } from '../message.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface ThreadMessageContext {
     baseUrl: string;
@@ -56,7 +57,8 @@ export async function threadMessage(
             console.warn(
                 `AgentFlowClient: Thread message fetch failed with HTTP ${response.status}`
             );
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Thread message fetch failed');
+            throw error;
         }
 
         const data: ThreadMessageResponse = await response.json();
