@@ -40,6 +40,12 @@ import {
     SearchMemoryRequest,
     SearchMemoryResponse
 } from './endpoints/searchMemory.js';
+import {
+    getMemory as getMemoryEndpoint,
+    GetMemoryContext,
+    GetMemoryRequest,
+    GetMemoryResponse
+} from './endpoints/getMemory.js';
 
 export interface AgentFlowConfig {
     baseUrl: string;
@@ -529,6 +535,42 @@ export class AgentFlowClient {
         };
 
         return searchMemoryEndpoint(context, request);
+    }
+
+    /**
+     * Get a specific memory by ID
+     * 
+     * @param memoryId - The ID of the memory to retrieve
+     * @param options - Optional config and options
+     * @returns Promise<GetMemoryResponse> containing the memory details
+     * 
+     * @example
+     * ```ts
+     * const memory = await client.getMemory('mem-12345', {
+     *   config: { include_vector: true }
+     * });
+     * console.log('Memory:', memory.data.memory.content);
+     * console.log('Score:', memory.data.memory.score);
+     * ```
+     */
+    async getMemory(
+        memoryId: string,
+        options?: { config?: Record<string, any>; options?: Record<string, any> }
+    ): Promise<GetMemoryResponse> {
+        const context: GetMemoryContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: GetMemoryRequest = {
+            memoryId,
+            config: options?.config,
+            options: options?.options
+        };
+
+        return getMemoryEndpoint(context, request);
     }
 
     /**

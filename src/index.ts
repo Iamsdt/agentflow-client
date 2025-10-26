@@ -54,6 +54,9 @@ export * from './endpoints/storeMemory.js';
 // Export search memory types
 export * from './endpoints/searchMemory.js';
 
+// Export get memory types
+export * from './endpoints/getMemory.js';
+
 // Export shared metadata types
 export * from './endpoints/metadata.js';
 
