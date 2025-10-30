@@ -1,0 +1,43 @@
+# Source files
+src/
+tests/
+examples/
+
+# Config files
+*.config.ts
+*.config.js
+tsconfig.json
+vite.config.ts
+vitest.config.ts
+
+# Development files
+.gitignore
+.serena/
+check.ts
+*.test.ts
+*.test.js
+
+# Build artifacts (except dist)
+dist-types/
+coverage/
+node_modules/
+
+# Documentation (keep in repo but not in package - users can view on GitHub)
+docs/
+*.md
+!README.md
+
+# Other
+.DS_Store
+.git/
+.github/
+*.log
+*.lock
+yarn.lock
+pnpm-lock.yaml
+
+# Keep only what's needed
+# dist/ - included
+# README.md - included
+# LICENSE - included
+# package.json - included automatically

@@ -1,6 +1,6 @@
-Task: Lets intrgeate Checkpoint apis
+Task: Lets integrate memory threads api into our codebase.
 Steps:
-1. Checking existing codebase all the api in a seperate folder named endpoints
+1. Checking existing codebase all the api in a separate folder named endpoints
 2. Create a new files and write api logic there
 3. Now connect that api with client file
 4. Export types from index file
@@ -9,22 +9,28 @@ Steps:
 7. Update check.ts file to include the new api
 
 
-Here is the api:
-curl -X 'DELETE' \
-  'http://127.0.0.1:8000/v1/threads/5/state' \
-  -H 'accept: application/json'
-
+Here is the api: Forget Memories
+curl -X 'POST' \
+  'http://127.0.0.1:8000/v1/store/memories/forget' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "config": {},
+  "options": {},
+  "memory_type": "episodic",
+  "category": "string",
+  "filters": {}
+}'
 
 Response:
 {
   "data": {
     "success": true,
-    "message": "State cleared successfully",
-    "data": true
+    "data": {}
   },
   "metadata": {
-    "request_id": "07471cf8-0d95-4f4f-af23-619d1011a465",
-    "timestamp": "2025-10-24T15:59:17.683517",
-    "message": "OK"
+    "message": "Success",
+    "request_id": "50009c49f05241938ce738a2199cd38a",
+    "timestamp": "2025-10-26T12:51:13.040424"
   }
 }

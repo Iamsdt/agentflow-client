@@ -1,7 +1,7 @@
-# Copilot Instructions for agentflow-react
+# Copilot Instructions for agentflow-client
 
 ## Project Overview
-- **agentflow-react** is a TypeScript library for integrating with the AgentFlow API, designed for use in React applications.
+- **agentflow-client** is a TypeScript client library for integrating with the AgentFlow API, designed for use in any JavaScript/TypeScript application.
 - The core client is `AgentFlowClient` (`src/client/client.ts`), which manages API communication, authentication, timeouts, and debug logging.
 - Tooling for remote function execution is abstracted via `ToolExecutor` and related types in `src/tools.ts`.
 - Endpoints are organized under `src/client/endpoints/`, e.g., `ping.ts` implements the `/v1/ping` API call.
@@ -32,8 +32,8 @@
 ## Project Conventions
 - **TypeScript Only:**
   - All source code is in TypeScript, using ES modules.
-- **React Compatibility:**
-  - The library is intended for React consumers but does not itself contain React components.
+- **Framework Agnostic:**
+  - The library can be used in any JavaScript/TypeScript environment (React, Vue, Node.js, etc.).
 - **Error Handling:**
   - API errors and timeouts are surfaced as thrown exceptions with debug logging if enabled.
 - **Extensibility:**

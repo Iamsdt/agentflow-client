@@ -6,6 +6,13 @@ import { stateSchema, StateSchemaContext, StateSchemaResponse } from './endpoint
 import { threadState, ThreadStateContext, ThreadStateResponse } from './endpoints/threadState.js';
 import { updateThreadState, UpdateThreadStateContext, UpdateThreadStateRequest, UpdateThreadStateResponse } from './endpoints/updateThreadState.js';
 import { clearThreadState, ClearThreadStateContext, ClearThreadStateResponse } from './endpoints/clearThreadState.js';
+import { threadMessages, ThreadMessagesContext, ThreadMessagesRequest, ThreadMessagesResponse } from './endpoints/threadMessages.js';
+import { addThreadMessages, AddThreadMessagesContext, AddThreadMessagesRequest, AddThreadMessagesResponse } from './endpoints/addThreadMessages.js';
+import { threadMessage, ThreadMessageContext, ThreadMessageRequest, ThreadMessageResponse } from './endpoints/threadMessage.js';
+import { threadDetails, ThreadDetailsContext, ThreadDetailsResponse } from './endpoints/threadDetails.js';
+import { deleteThreadMessage, DeleteThreadMessageContext, DeleteThreadMessageRequest, DeleteThreadMessageResponse } from './endpoints/deleteThreadMessage.js';
+import { deleteThread, DeleteThreadContext, DeleteThreadRequest, DeleteThreadResponse } from './endpoints/deleteThread.js';
+import { threads, ThreadsContext, ThreadsRequest, ThreadsResponse } from './endpoints/threads.js';
 import { 
     invoke as invokeEndpoint, 
     InvokeContext, 
@@ -21,6 +28,48 @@ import {
     StreamChunk,
     StreamEventType
 } from './endpoints/stream.js';
+import {
+    storeMemory as storeMemoryEndpoint,
+    StoreMemoryContext,
+    StoreMemoryRequest,
+    StoreMemoryResponse
+} from './endpoints/storeMemory.js';
+import {
+    searchMemory as searchMemoryEndpoint,
+    SearchMemoryContext,
+    SearchMemoryRequest,
+    SearchMemoryResponse
+} from './endpoints/searchMemory.js';
+import {
+    getMemory as getMemoryEndpoint,
+    GetMemoryContext,
+    GetMemoryRequest,
+    GetMemoryResponse
+} from './endpoints/getMemory.js';
+import {
+    updateMemory as updateMemoryEndpoint,
+    UpdateMemoryContext,
+    UpdateMemoryRequest,
+    UpdateMemoryResponse
+} from './endpoints/updateMemory.js';
+import {
+    deleteMemory as deleteMemoryEndpoint,
+    DeleteMemoryContext,
+    DeleteMemoryRequest,
+    DeleteMemoryResponse
+} from './endpoints/deleteMemory.js';
+import {
+    listMemories as listMemoriesEndpoint,
+    ListMemoriesContext,
+    ListMemoriesRequest,
+    ListMemoriesResponse
+} from './endpoints/listMemories.js';
+import {
+    forgetMemories as forgetMemoriesEndpoint,
+    ForgetMemoriesContext,
+    ForgetMemoriesRequest,
+    ForgetMemoriesResponse
+} from './endpoints/forgetMemories.js';
 
 export interface AgentFlowConfig {
     baseUrl: string;
@@ -117,6 +166,10 @@ export class AgentFlowClient {
     }
 
     /**
+     * ***************** ALL THREAD APIS *****************
+     */
+
+    /**
      * Fetch the state of a specific thread
      * @param threadId - The ID of the thread to fetch state for
      * @returns ThreadStateResponse containing the thread's current state
@@ -173,6 +226,190 @@ export class AgentFlowClient {
         };
 
         return clearThreadState(context, threadId);
+    }
+
+    /**
+     * Fetch details for a specific thread
+     * @param threadId - The ID of the thread to fetch
+     * @returns ThreadDetailsResponse containing thread details
+     */
+    async threadDetails(threadId: string | number): Promise<ThreadDetailsResponse> {
+        const context: ThreadDetailsContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        return threadDetails(context, threadId);
+    }
+
+    /**
+     * Fetch list of threads with optional search and pagination
+     * @param search - Optional search term to filter threads
+     * @param offset - Optional offset for pagination (default 0)
+     * @param limit - Optional limit for pagination (default no limit)
+     * @returns ThreadsResponse containing the list of threads and metadata
+     */
+    async threads(
+        search?: string,
+        offset?: number,
+        limit?: number
+    ): Promise<ThreadsResponse> {
+        const context: ThreadsContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: ThreadsRequest = {
+            search,
+            offset,
+            limit
+        };
+
+        return threads(context, request);
+    }
+
+    /**
+     * Fetch messages from a specific thread with optional search and pagination
+     * @param threadId - The ID of the thread to fetch messages from
+     * @param search - Optional search term to filter messages
+     * @param offset - Optional offset for pagination (default 0)
+     * @param limit - Optional limit for pagination (default no limit)
+     * @returns ThreadMessagesResponse containing the messages and metadata
+     */
+    async threadMessages(
+        threadId: string | number,
+        search?: string,
+        offset?: number,
+        limit?: number
+    ): Promise<ThreadMessagesResponse> {
+        const context: ThreadMessagesContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: ThreadMessagesRequest = {
+            threadId,
+            search,
+            offset,
+            limit
+        };
+
+        return threadMessages(context, request);
+    }
+
+    /**
+     * Add messages to a specific thread checkpoint
+     * @param threadId - The ID of the thread to add messages to
+     * @param messages - Array of messages to add to the checkpoint
+     * @param config - Configuration map for the checkpoint
+     * @param metadata - Optional metadata for the checkpoint
+     * @returns AddCheckpointMessagesResponse containing the operation result
+     */
+    async addThreadMessages(
+        threadId: string | number,
+        messages: Message[],
+        config: Record<string, any> = {},
+        metadata?: Record<string, any>
+    ): Promise<AddThreadMessagesResponse> {
+        const context: AddThreadMessagesContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: AddThreadMessagesRequest = {
+            threadId,
+            config,
+            messages,
+            metadata
+        };
+
+        return addThreadMessages(context, request);
+    }
+
+    /**
+     * Fetch a specific message from a thread by message ID
+     * @param threadId - The ID of the thread
+     * @param messageId - The ID of the message to fetch
+     * @returns ThreadMessageResponse containing the message and metadata
+     */
+    async singleMessage(
+        threadId: string | number,
+        messageId: string
+    ): Promise<ThreadMessageResponse> {
+        const context: ThreadMessageContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: ThreadMessageRequest = {
+            threadId,
+            messageId
+        };
+
+        return threadMessage(context, request);
+    }
+
+    /**
+     * Delete a specific message from a thread
+     * @param threadId - The ID of the thread
+     * @param messageId - The ID of the message to delete
+     * @param config - Optional configuration map to send with the request body
+     * @returns DeleteThreadMessageResponse containing the deletion result
+     */
+    async deleteMessage(
+        threadId: string | number,
+        messageId: string,
+        config?: Record<string, any>
+    ): Promise<DeleteThreadMessageResponse> {
+        const context: DeleteThreadMessageContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: DeleteThreadMessageRequest = {
+            threadId,
+            messageId,
+            config
+        };
+
+        return deleteThreadMessage(context, request);
+    }
+
+    /**
+     * Delete a specific thread
+     * @param threadId - The ID of the thread to delete
+     * @param config - Optional configuration map to send with the request body
+     * @returns DeleteThreadResponse containing the deletion result
+     */
+    async deleteThread(
+        threadId: string | number,
+        config?: Record<string, any>
+    ): Promise<DeleteThreadResponse> {
+        const context: DeleteThreadContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: DeleteThreadRequest = {
+            threadId,
+            config
+        };
+
+        return deleteThread(context, request);
     }
 
     /**
@@ -264,6 +501,256 @@ export class AgentFlowClient {
 
         // Return async generator from the stream endpoint
         return streamInvokeEndpoint(context, request);
+    }
+
+    /**
+     * Store a memory in the agent's memory system
+     * 
+     * @param request - Memory storage request parameters
+     * @returns Promise<StoreMemoryResponse> containing the memory_id
+     * 
+     * @example
+     * ```ts
+     * const result = await client.storeMemory({
+     *   content: "User prefers dark mode",
+     *   memory_type: MemoryType.SEMANTIC,
+     *   category: "preferences",
+     *   metadata: { source: "user_settings" }
+     * });
+     * console.log('Memory stored with ID:', result.data.memory_id);
+     * ```
+     */
+    async storeMemory(request: StoreMemoryRequest): Promise<StoreMemoryResponse> {
+        const context: StoreMemoryContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        return storeMemoryEndpoint(context, request);
+    }
+
+    /**
+     * Search for memories in the agent's memory system
+     * 
+     * @param request - Memory search request parameters
+     * @returns Promise<SearchMemoryResponse> containing matching memories
+     * 
+     * @example
+     * ```ts
+     * const results = await client.searchMemory({
+     *   query: "dark mode preferences",
+     *   memory_type: MemoryType.SEMANTIC,
+     *   limit: 5,
+     *   retrieval_strategy: RetrievalStrategy.SIMILARITY
+     * });
+     * results.data.results.forEach(result => {
+     *   console.log('Memory:', result.content, 'Score:', result.score);
+     * });
+     * ```
+     */
+    async searchMemory(request: SearchMemoryRequest): Promise<SearchMemoryResponse> {
+        const context: SearchMemoryContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        return searchMemoryEndpoint(context, request);
+    }
+
+    /**
+     * Get a specific memory by ID
+     * 
+     * @param memoryId - The ID of the memory to retrieve
+     * @param options - Optional config and options
+     * @returns Promise<GetMemoryResponse> containing the memory details
+     * 
+     * @example
+     * ```ts
+     * const memory = await client.getMemory('mem-12345', {
+     *   config: { include_vector: true }
+     * });
+     * console.log('Memory:', memory.data.memory.content);
+     * console.log('Score:', memory.data.memory.score);
+     * ```
+     */
+    async getMemory(
+        memoryId: string,
+        options?: { config?: Record<string, any>; options?: Record<string, any> }
+    ): Promise<GetMemoryResponse> {
+        const context: GetMemoryContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: GetMemoryRequest = {
+            memoryId,
+            config: options?.config,
+            options: options?.options
+        };
+
+        return getMemoryEndpoint(context, request);
+    }
+
+    /**
+     * Update an existing memory by ID
+     * 
+     * @param memoryId - The ID of the memory to update
+     * @param content - The updated content for the memory
+     * @param options - Optional config, options, and metadata
+     * @returns Promise<UpdateMemoryResponse> containing success status and updated data
+     * 
+     * @example
+     * ```ts
+     * const result = await client.updateMemory('mem-12345', 'Updated content', {
+     *   metadata: { tags: ['important', 'updated'] }
+     * });
+     * console.log('Update success:', result.data.success);
+     * ```
+     */
+    async updateMemory(
+        memoryId: string,
+        content: string,
+        options?: { config?: Record<string, any>; options?: Record<string, any>; metadata?: Record<string, any> }
+    ): Promise<UpdateMemoryResponse> {
+        const context: UpdateMemoryContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: UpdateMemoryRequest = {
+            memoryId,
+            content,
+            config: options?.config,
+            options: options?.options,
+            metadata: options?.metadata
+        };
+
+        return updateMemoryEndpoint(context, request);
+    }
+
+    /**
+     * Delete a memory by ID
+     * 
+     * @param memoryId - The ID of the memory to delete
+     * @param options - Optional config and options
+     * @returns Promise<DeleteMemoryResponse> containing success status and deletion confirmation
+     * 
+     * @example
+     * ```ts
+     * const result = await client.deleteMemory('mem-12345', {
+     *   config: { soft_delete: true }
+     * });
+     * console.log('Delete success:', result.data.success);
+     * console.log('Deleted:', result.data.data);
+     * ```
+     */
+    async deleteMemory(
+        memoryId: string,
+        options?: { config?: Record<string, any>; options?: Record<string, any> }
+    ): Promise<DeleteMemoryResponse> {
+        const context: DeleteMemoryContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: DeleteMemoryRequest = {
+            memoryId,
+            config: options?.config,
+            options: options?.options
+        };
+
+        return deleteMemoryEndpoint(context, request);
+    }
+
+    /**
+     * List all memories with optional pagination
+     * 
+     * @param options - Optional config, options, and limit
+     * @returns Promise<ListMemoriesResponse> containing array of memories
+     * 
+     * @example
+     * ```ts
+     * const result = await client.listMemories({
+     *   limit: 50,
+     *   config: { include_vectors: false }
+     * });
+     * console.log('Found memories:', result.data.memories.length);
+     * result.data.memories.forEach(memory => {
+     *   console.log('Memory:', memory.content, 'Type:', memory.memory_type);
+     * });
+     * ```
+     */
+    async listMemories(
+        options?: { config?: Record<string, any>; options?: Record<string, any>; limit?: number }
+    ): Promise<ListMemoriesResponse> {
+        const context: ListMemoriesContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: ListMemoriesRequest = {
+            config: options?.config,
+            options: options?.options,
+            limit: options?.limit
+        };
+
+        return listMemoriesEndpoint(context, request);
+    }
+
+    /**
+     * Forget (delete) memories based on filters and criteria
+     * 
+     * @param options - Optional config, options, memory type, category, and filters
+     * @returns Promise<ForgetMemoriesResponse> containing success status
+     * 
+     * @example
+     * ```ts
+     * // Forget all episodic memories in a category
+     * const result = await client.forgetMemories({
+     *   memory_type: MemoryType.EPISODIC,
+     *   category: 'temporary',
+     *   filters: { tag: 'delete-me' }
+     * });
+     * console.log('Forget success:', result.data.success);
+     * ```
+     */
+    async forgetMemories(
+        options?: {
+            config?: Record<string, any>;
+            options?: Record<string, any>;
+            memory_type?: any;
+            category?: string;
+            filters?: Record<string, any>;
+        }
+    ): Promise<ForgetMemoriesResponse> {
+        const context: ForgetMemoriesContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: ForgetMemoriesRequest = {
+            config: options?.config,
+            options: options?.options,
+            memory_type: options?.memory_type,
+            category: options?.category,
+            filters: options?.filters
+        };
+
+        return forgetMemoriesEndpoint(context, request);
     }
 
     /**

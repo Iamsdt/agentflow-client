@@ -1,4 +1,5 @@
 import { ResponseMetadata } from './metadata.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface ClearThreadStateContext {
     baseUrl: string;
@@ -44,7 +45,8 @@ export async function clearThreadState(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Thread state clear failed with HTTP ${response.status}`);
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Thread state clear failed');
+            throw error;
         }
 
         const data: ClearThreadStateResponse = await response.json();

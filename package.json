@@ -1,19 +1,34 @@
 {
-  "name": "agentflow-react",
-  "version": "1.0.0",
-  "description": "A React library for consuming AgentFlow API",
+  "name": "@10xscale/agentflow-client",
+  "version": "0.0.1",
+  "description": "TypeScript client library for AgentFlow API - build intelligent agents with thread management, streaming, memory, and tool execution",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc && vite build && cp -r dist-types/* dist/",
     "dev": "vite build --watch",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage",
+    "coverage:open": "vitest run --coverage && xdg-open coverage/index.html",
+    "prepublishOnly": "npm run build && npm run test:run"
   },
-  "dependencies": {
-    "react": "^18.0.0"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Iamsdt/agentflow-client.git"
   },
+  "bugs": {
+    "url": "https://github.com/Iamsdt/agentflow-client/issues"
+  },
+  "homepage": "https://github.com/Iamsdt/agentflow-client#readme",
   "devDependencies": {
     "@types/react": "^18.0.0",
     "@vitejs/plugin-react": "^4.2.0",
@@ -25,10 +40,24 @@
     "vitest": "^1.0.0"
   },
   "keywords": [
+    "agentflow",
+    "agent",
+    "ai",
+    "llm",
+    "chatbot",
+    "conversation",
+    "memory",
+    "threads",
+    "streaming",
+    "tools",
+    "function-calling",
     "react",
-    "api",
-    "agentflow"
+    "typescript",
+    "api-client"
   ],
-  "author": "",
-  "license": "MIT"
+  "author": "Shudipto Trafder",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

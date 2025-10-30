@@ -1,0 +1,82 @@
+import { ResponseMetadata } from './metadata.js';
+import { Message } from '../message.js';
+import { createErrorFromResponse } from '../errors.js';
+
+export interface AddThreadMessagesContext {
+    baseUrl: string;
+    authToken?: string | null;
+    timeout: number;
+    debug: boolean;
+}
+
+export interface AddThreadMessagesRequest {
+    threadId: string | number;
+    config: Record<string, any>;
+    messages: Message[];
+    metadata?: Record<string, any>;
+}
+
+export interface AddThreadMessagesData {
+    success: boolean;
+    message: string;
+    data: Record<string, any>;
+}
+
+export interface AddThreadMessagesResponse {
+    data: AddThreadMessagesData;
+    metadata: ResponseMetadata;
+}
+
+export async function addThreadMessages(
+    context: AddThreadMessagesContext,
+    request: AddThreadMessagesRequest
+): Promise<AddThreadMessagesResponse> {
+    try {
+        if (context.debug) {
+            console.debug('AgentFlowClient: Adding thread messages to thread', request.threadId);
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), context.timeout);
+
+        const url = `${context.baseUrl}/v1/threads/${request.threadId}/messages`;
+
+        // Prepare request body
+        const body = {
+            config: request.config,
+            messages: request.messages,
+            metadata: request.metadata || {}
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(context.authToken && { 'Authorization': `Bearer ${context.authToken}` })
+            },
+            body: JSON.stringify(body),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            console.warn(`AgentFlowClient: Add checkpoint messages failed with HTTP ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Add thread messages failed');
+            throw error;
+        }
+
+        const data: AddThreadMessagesResponse = await response.json();
+
+        if (context.debug) {
+            console.info('AgentFlowClient: Thread messages added successfully', data);
+        }
+
+        return data;
+    } catch (error) {
+        if (context.debug) {
+            console.debug('AgentFlowClient: Add checkpoint messages failed:', error);
+        }
+        throw error;
+    }
+}

@@ -241,7 +241,7 @@ describe('Stream API', () => {
                 for await (const chunk of stream) {
                     // Should not reach here
                 }
-            }).rejects.toThrow('HTTP error');
+            }).rejects.toThrow();
         });
 
         it('should handle timeout', async () => {

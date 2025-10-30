@@ -146,7 +146,7 @@ describe('State Schema Endpoint Tests', () => {
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
-      await expect(stateSchema(mockContext)).rejects.toThrow('HTTP error! status: 404');
+      await expect(stateSchema(mockContext)).rejects.toThrow();
     });
 
     it('should handle timeout correctly', async () => {

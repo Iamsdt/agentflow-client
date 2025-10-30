@@ -1,4 +1,5 @@
 import { ResponseMetadata } from './metadata.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface StateSchemaContext {
     baseUrl: string;
@@ -77,7 +78,8 @@ export async function stateSchema(context: StateSchemaContext): Promise<StateSch
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: State schema fetch failed with HTTP ${response.status}`);
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await createErrorFromResponse(response, 'State schema fetch failed');
+            throw error;
         }
 
         const data: StateSchemaResponse = await response.json();

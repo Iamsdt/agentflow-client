@@ -1,0 +1,131 @@
+import { ResponseMetadata } from './metadata.js';
+import { createErrorFromResponse } from '../errors.js';
+import { MemoryType } from './storeMemory.js';
+
+export interface SearchMemoryContext {
+    baseUrl: string;
+    authToken?: string | null;
+    timeout: number;
+    debug: boolean;
+}
+
+/**
+ * Memory retrieval strategies
+ */
+export enum RetrievalStrategy {
+    SIMILARITY = "similarity",           // Vector similarity search
+    TEMPORAL = "temporal",               // Time-based retrieval
+    RELEVANCE = "relevance",             // Relevance scoring
+    HYBRID = "hybrid",                   // Combined approaches
+    GRAPH_TRAVERSAL = "graph_traversal"  // Knowledge graph navigation
+}
+
+/**
+ * Supported distance metrics for vector similarity
+ */
+export enum DistanceMetric {
+    COSINE = "cosine",
+    EUCLIDEAN = "euclidean",
+    DOT_PRODUCT = "dot_product",
+    MANHATTAN = "manhattan"
+}
+
+export interface SearchMemoryRequest {
+    config?: Record<string, any>;
+    options?: Record<string, any>;
+    query: string;
+    memory_type?: MemoryType;
+    category?: string;
+    limit?: number;
+    score_threshold?: number;
+    filters?: Record<string, any>;
+    retrieval_strategy?: RetrievalStrategy;
+    distance_metric?: DistanceMetric;
+    max_tokens?: number;
+}
+
+export interface MemoryResult {
+    id: string;
+    content: string;
+    score: number;
+    memory_type: string;
+    metadata: Record<string, any>;
+    vector: number[];
+    user_id: string;
+    thread_id: string;
+    timestamp: string;
+}
+
+export interface SearchMemoryData {
+    results: MemoryResult[];
+}
+
+export interface SearchMemoryResponse {
+    data: SearchMemoryData;
+    metadata: ResponseMetadata;
+}
+
+export async function searchMemory(
+    context: SearchMemoryContext,
+    request: SearchMemoryRequest
+): Promise<SearchMemoryResponse> {
+    try {
+        if (context.debug) {
+            console.debug('AgentFlowClient: Searching memories with query:', request.query);
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), context.timeout);
+
+        const url = `${context.baseUrl}/v1/store/search`;
+
+        // Prepare request body with defaults
+        const body = {
+            config: request.config || {},
+            options: request.options || {},
+            query: request.query,
+            memory_type: request.memory_type || MemoryType.EPISODIC,
+            category: request.category || '',
+            limit: request.limit !== undefined ? request.limit : 10,
+            score_threshold: request.score_threshold !== undefined ? request.score_threshold : 0,
+            filters: request.filters || {},
+            retrieval_strategy: request.retrieval_strategy || RetrievalStrategy.SIMILARITY,
+            distance_metric: request.distance_metric || DistanceMetric.COSINE,
+            max_tokens: request.max_tokens !== undefined ? request.max_tokens : 4000
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(context.authToken && { 'Authorization': `Bearer ${context.authToken}` })
+            },
+            body: JSON.stringify(body),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            console.warn(`AgentFlowClient: Search memory failed with HTTP ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Search memory request failed');
+            throw error;
+        }
+
+        const data: SearchMemoryResponse = await response.json();
+
+        if (context.debug) {
+            console.info('AgentFlowClient: Memory search successful', {
+                query: request.query,
+                results_count: data.data.results.length
+            });
+        }
+
+        return data;
+    } catch (error) {
+        if (context.debug) {
+            console.debug('AgentFlowClient: Search memory failed:', error);
+        }
+        throw error;
+    }
+}

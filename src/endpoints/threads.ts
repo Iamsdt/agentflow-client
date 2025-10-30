@@ -1,0 +1,111 @@
+import { ResponseMetadata } from './metadata.js';
+import { createErrorFromResponse } from '../errors.js';
+
+export interface ThreadsContext {
+    baseUrl: string;
+    authToken?: string | null;
+    timeout: number;
+    debug: boolean;
+}
+
+export interface ThreadsRequest {
+    search?: string;
+    offset?: number;
+    limit?: number;
+}
+
+export interface ThreadItem {
+    thread_id: string;
+    thread_name: string | null;
+    user_id: string | null;
+    metadata: Record<string, any> | null;
+    updated_at: string | null;
+    run_id: string | null;
+}
+
+export interface ThreadsData {
+    threads: ThreadItem[];
+}
+
+export interface ThreadsResponse {
+    data: ThreadsData;
+    metadata: ResponseMetadata;
+}
+
+/**
+ * Fetch list of threads with optional search and pagination
+ * GET /v1/threads
+ */
+export async function threads(
+    context: ThreadsContext,
+    request?: ThreadsRequest
+): Promise<ThreadsResponse> {
+    try {
+        if (context.debug) {
+            console.debug('AgentFlowClient: Fetching threads list');
+            if (request?.search) {
+                console.debug(`  Search: ${request.search}`);
+            }
+            if (request?.offset !== undefined) {
+                console.debug(`  Offset: ${request.offset}`);
+            }
+            if (request?.limit !== undefined) {
+                console.debug(`  Limit: ${request.limit}`);
+            }
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), context.timeout);
+
+        // Build query parameters
+        const params = new URLSearchParams();
+        if (request?.search) {
+            params.append('search', request.search);
+        }
+        if (request?.offset !== undefined) {
+            params.append('offset', request.offset.toString());
+        }
+        if (request?.limit !== undefined) {
+            params.append('limit', request.limit.toString());
+        }
+
+        const queryString = params.toString();
+        const url = `${context.baseUrl}/v1/threads${queryString ? `?${queryString}` : ''}`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': 'application/json',
+                ...(context.authToken && { 'Authorization': `Bearer ${context.authToken}` })
+            },
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            console.warn(`AgentFlowClient: Threads list fetch failed with HTTP ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Threads list fetch failed');
+            throw error;
+        }
+
+        const data: ThreadsResponse = await response.json();
+
+        if (context.debug) {
+            console.info('AgentFlowClient: Threads list fetched successfully', data);
+            console.debug(`  Found ${data.data.threads.length} threads`);
+        }
+
+        return data;
+    } catch (error) {
+        if ((error as Error).name === 'AbortError') {
+            console.warn(`AgentFlowClient: Threads list fetch timeout after ${context.timeout}ms`);
+            throw new Error(`Request timeout after ${context.timeout}ms`);
+        }
+        if (context.debug) {
+            console.debug('AgentFlowClient: Threads list fetch failed:', error);
+        }
+        throw error;
+    }
+}

@@ -130,7 +130,7 @@ describe('threadState endpoint', () => {
                 debug: false
             };
 
-            await expect(threadState(context, threadId)).rejects.toThrow('HTTP error! status: 404');
+            await expect(threadState(context, threadId)).rejects.toThrow();
         });
 
         it('should handle timeout', async () => {

@@ -1,4 +1,5 @@
 import { ResponseMetadata } from './metadata.js';
+import { createErrorFromResponse } from '../errors.js';
 
 export interface PingContext {
     baseUrl: string;
@@ -34,7 +35,8 @@ export async function ping(context: PingContext): Promise<PingResponse> {
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Ping failed with HTTP ${response.status}`);
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await createErrorFromResponse(response, 'Ping request failed');
+            throw error;
         }
 
         const data: PingResponse = await response.json();
