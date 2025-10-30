@@ -252,3 +252,15 @@ async setup(): Promise<void>
 ```
 
 Note: `setup()` is currently a dummy implementation. Future versions will send tool definitions to the server.
+
+---
+
+## See Also
+
+- **[Tools Guide](./tools-guide.md)** - Comprehensive guide to tool registration and execution
+- **[React Integration](./react-integration.md)** - Using invoke in React applications
+- **[React Examples](./react-examples.md)** - Complete React component examples with invoke
+- **[API Reference](./api-reference.md)** - Complete invoke API documentation
+- **[Stream Usage Guide](./stream-usage.md)** - Alternative streaming API
+- **[TypeScript Types](./typescript-types.md)** - Type definitions for invoke
+- **[Troubleshooting](./troubleshooting.md)** - Common invoke issues and solutions

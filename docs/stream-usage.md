@@ -514,3 +514,16 @@ See the `examples/` directory for complete working examples:
 - `examples/stream-react.tsx` - React component example
 - `examples/stream-chat.ts` - Chat application pattern
 
+---
+
+## See Also
+
+- **[React Integration](./react-integration.md)** - Using stream in React applications with hooks
+- **[React Examples](./react-examples.md)** - Complete React streaming components
+- **[Stream Quick Reference](./stream-quick-ref.md)** - Quick reference for stream events
+- **[API Reference](./api-reference.md)** - Complete stream API documentation
+- **[Invoke Usage Guide](./invoke-usage.md)** - Alternative synchronous API
+- **[Tools Guide](./tools-guide.md)** - Using tools with streaming
+- **[TypeScript Types](./typescript-types.md)** - Type definitions for streaming
+- **[Troubleshooting](./troubleshooting.md)** - Common streaming issues
+
