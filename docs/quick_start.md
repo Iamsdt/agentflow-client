@@ -84,11 +84,7 @@ const threads = await client.threads();
 console.log(threads.data.threads);
 
 // Search and paginate
-const filtered = await client.threads({
-  search: 'customer',
-  limit: 10,
-  offset: 0
-});
+const filtered = await client.threads('customer', 0, 10);
 
 for (const thread of filtered.data.threads) {
   console.log(`${thread.thread_id}: ${thread.thread_name}`);
@@ -102,7 +98,7 @@ for (const thread of filtered.data.threads) {
 Retrieve the current state of a thread.
 
 ```typescript
-const state = await client.threadState('thread_123');
+const state = await client.threadState(123);
 console.log('Current state:', state.data.state);
 
 // Access specific state fields
@@ -117,13 +113,15 @@ const progress = state.data.state.progress;
 Modify the state of a thread.
 
 ```typescript
-const response = await client.updateThreadState('thread_123', {
-  state: {
+const response = await client.updateThreadState(
+  123,
+  {}, // config
+  {   // state
     step: 'completed',
     progress: 100,
     result: { success: true }
   }
-});
+);
 
 console.log('Updated state:', response.data.state);
 ```
@@ -137,12 +135,10 @@ Execute the agent workflow without tools.
 ```typescript
 import { Message } from '@10xscale/agentflow-client';
 
-const result = await client.invoke({
-  messages: [
-    Message.text_message('What is the weather like today?', 'user')
-  ],
-  granularity: 'full'
-});
+const result = await client.invoke(
+  [Message.text_message('What is the weather like today?', 'user')],
+  { response_granularity: 'full' }
+);
 
 console.log('Response:', result.messages);
 console.log('State:', result.state);
@@ -208,16 +204,16 @@ client.registerTool({
 });
 
 // Step 2: Invoke with automatic tool execution
-const result = await client.invoke({
-  messages: [
-    Message.text_message("What's the weather in San Francisco and what's 25 + 17?", 'user')
-  ],
-  granularity: 'full',
-  recursion_limit: 10,
-  on_progress: (partial) => {
-    console.log(`Progress: Iteration ${partial.iterations}`);
+const result = await client.invoke(
+  [Message.text_message("What's the weather in San Francisco and what's 25 + 17?", 'user')],
+  {
+    response_granularity: 'full',
+    recursion_limit: 10,
+    onPartialResult: (partial) => {
+      console.log(`Progress: Iteration ${partial.iterations}`);
+    }
   }
-});
+);
 
 console.log('Final response:', result.messages);
 console.log('All messages (including tool calls):', result.all_messages);
@@ -243,12 +239,12 @@ import { Message } from '@10xscale/agentflow-client';
 
 console.log('Streaming response:');
 
-for await (const chunk of client.stream({
-  messages: [
-    Message.text_message('Tell me a short story about a robot', 'user')
-  ],
-  granularity: 'full'
-})) {
+const stream = client.stream(
+  [Message.text_message('Tell me a short story about a robot', 'user')],
+  { response_granularity: 'full' }
+);
+
+for await (const chunk of stream) {
   switch (chunk.event) {
     case 'metadata':
       console.log('Request ID:', chunk.data.request_id);
@@ -335,11 +331,7 @@ for (const memory of results.data.results) {
 #### List Memories
 
 ```typescript
-import { MemoryType } from '@10xscale/agentflow-client';
-
 const memories = await client.listMemories({
-  memory_type: MemoryType.SEMANTIC,
-  category: 'user_preferences',
   limit: 10
 });
 
@@ -349,14 +341,17 @@ console.log(`Found ${memories.data.memories.length} memories`);
 #### Update Memory
 
 ```typescript
-const response = await client.updateMemory('mem_123', {
-  content: 'Updated: User now prefers light mode',
-  metadata: {
-    updated_at: new Date().toISOString()
+const response = await client.updateMemory(
+  'mem_123',
+  'Updated: User now prefers light mode',
+  {
+    metadata: {
+      updated_at: new Date().toISOString()
+    }
   }
-});
+);
 
-console.log('Updated memory:', response.data.memory);
+console.log('Update success:', response.data.success);
 ```
 
 #### Delete Memory
@@ -462,7 +457,7 @@ async function main() {
     });
     
     // 3. Get or create thread
-    let threadId = 'thread_123';
+    let threadId = 123;
     try {
       const thread = await client.threadDetails(threadId);
       console.log('✓ Using existing thread:', thread.data.thread_name);
@@ -487,12 +482,12 @@ async function main() {
     
     // 6. Invoke agent with streaming
     console.log('\nAgent response:');
-    for await (const chunk of client.stream({
-      messages: [
-        Message.text_message('Help me find information about our project timeline', 'user')
-      ],
-      granularity: 'full'
-    })) {
+    const stream = client.stream(
+      [Message.text_message('Help me find information about our project timeline', 'user')],
+      { response_granularity: 'full' }
+    );
+    
+    for await (const chunk of stream) {
       if (chunk.event === 'messages_chunk') {
         process.stdout.write(chunk.data);
       } else if (chunk.event === 'on_chain_end') {
@@ -511,12 +506,14 @@ async function main() {
     });
     
     // 8. Update thread state
-    await client.updateThreadState(threadId, {
-      state: {
+    await client.updateThreadState(
+      threadId,
+      {}, // config
+      {
         last_topic: 'project_timeline',
         messages_count: state.data.state.messages_count + 1
       }
-    });
+    );
     
     console.log('✓ All operations completed successfully');
     

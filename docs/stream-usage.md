@@ -1,14 +1,14 @@
 # Stream API - Real-time Streaming from AgentFlow
 
-This document explains how to use the `streamInvoke` method for real-time streaming responses from the AgentFlow API.
+This document explains how to use the `stream` method for real-time streaming responses from the AgentFlow API.
 
 ## Overview
 
-The `streamInvoke` method provides real-time streaming of responses from the agent graph using HTTP streaming (NDJSON format). Instead of waiting for the entire response like with `invoke`, the stream method yields chunks as they arrive from the server, enabling responsive, real-time user interfaces.
+The `stream` method provides real-time streaming of responses from the agent graph using HTTP streaming (NDJSON format). Instead of waiting for the entire response like with `invoke`, the stream method yields chunks as they arrive from the server, enabling responsive, real-time user interfaces.
 
 ## Key Differences from `invoke`
 
-| Aspect | `invoke` | `streamInvoke` |
+| Aspect | `invoke` | `stream` |
 |--------|---------|----------------|
 | **Response Pattern** | Wait for entire result | Yield chunks in real-time |
 | **Data Structure** | Single response object | Multiple `StreamChunk` objects |
@@ -317,7 +317,7 @@ async function streamWithCancellation(
 
 ## Configuration Options
 
-When calling `streamInvoke`, you can provide options:
+When calling `stream`, you can provide options:
 
 ```typescript
 stream(
@@ -422,7 +422,7 @@ for await (const chunk of stream) {
 - You have callback-based patterns
 - The response is relatively small
 
-**Use `streamInvoke` when:**
+**Use `stream` when:**
 - Building chat/conversational interfaces
 - You want real-time streaming responses
 - You need responsive UIs with incremental updates

@@ -113,10 +113,15 @@ const messages = [
 
 const result = await client.invoke(
     messages,
-    {}, // initial_state
-    {}, // config
-    25, // recursion_limit (default: 25)
-    'full' // response_granularity (default: 'full')
+    {
+        initial_state: {},
+        config: {},
+        recursion_limit: 25,
+        response_granularity: 'full',
+        onPartialResult: (partial) => {
+            console.log(`Iteration ${partial.iterations}`);
+        }
+    }
 );
 
 console.log('Iterations:', result.iterations);
@@ -245,10 +250,13 @@ See `examples/invoke-example.ts` for a complete working example.
 ```typescript
 async invoke(
     messages: Message[],
-    initial_state?: Record<string, any>,
-    config?: Record<string, any>,
-    recursion_limit: number = 25,
-    response_granularity: 'full' | 'partial' | 'low' = 'full'
+    options?: {
+        initial_state?: Record<string, any>;
+        config?: Record<string, any>;
+        recursion_limit?: number;           // default: 25
+        response_granularity?: 'full' | 'partial' | 'low';  // default: 'full'
+        onPartialResult?: InvokeCallback;   // Progress callback
+    }
 ): Promise<InvokeResult>
 ```
 

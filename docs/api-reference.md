@@ -8,7 +8,7 @@ Complete API reference for all endpoints in the @10xscale/agentflow-client libra
 - [Health & Metadata](#health--metadata)
   - [ping()](#ping)
   - [graph()](#graph)
-  - [stateSchema()](#stateschema)
+  - [graphStateSchema()](#graphstateschema)
 - [Thread Management](#thread-management)
   - [threads()](#threads)
   - [threadDetails()](#threaddetails)
@@ -143,15 +143,15 @@ console.log(response.data.graph);
 
 ---
 
-### stateSchema()
+### graphStateSchema()
 
 Retrieve the state schema definition with field types and descriptions.
 
-**Endpoint:** `GET /v1/graph/state/schema`
+**Endpoint:** `GET /v1/graph:StateSchema`
 
 **Signature:**
 ```typescript
-stateSchema(): Promise<StateSchemaResponse>
+graphStateSchema(): Promise<StateSchemaResponse>
 ```
 
 **Returns:**
@@ -210,17 +210,20 @@ List all threads with optional search and pagination.
 
 **Signature:**
 ```typescript
-threads(options?: ThreadsRequest): Promise<ThreadsResponse>
+threads(
+  search?: string,
+  offset?: number,
+  limit?: number
+): Promise<ThreadsResponse>
 ```
 
 **Parameters:**
-```typescript
-interface ThreadsRequest {
-  search?: string;   // Search query to filter threads
-  offset?: number;   // Pagination offset (default: 0)
-  limit?: number;    // Number of results (default: 20)
-}
-```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| search | string | No | undefined | Search query to filter threads |
+| offset | number | No | 0 | Pagination offset |
+| limit | number | No | undefined | Number of results to return |
 
 **Returns:**
 ```typescript
@@ -247,11 +250,7 @@ interface ThreadItem {
 const response = await client.threads();
 
 // Search and paginate
-const filtered = await client.threads({
-  search: 'customer support',
-  offset: 0,
-  limit: 10
-});
+const filtered = await client.threads('customer support', 0, 10);
 
 for (const thread of filtered.data.threads) {
   console.log(`${thread.thread_id}: ${thread.thread_name}`);
@@ -320,14 +319,14 @@ Get the current state of a thread.
 
 **Signature:**
 ```typescript
-threadState(threadId: string): Promise<ThreadStateResponse>
+threadState(threadId: number): Promise<ThreadStateResponse>
 ```
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| threadId | string | Yes | Unique thread identifier |
+| threadId | number | Yes | Unique thread identifier |
 
 **Returns:**
 ```typescript
@@ -365,18 +364,19 @@ Update the state of a thread.
 **Signature:**
 ```typescript
 updateThreadState(
-  threadId: string,
-  request: UpdateThreadStateRequest
+  threadId: number,
+  config: Record<string, any>,
+  state: any
 ): Promise<UpdateThreadStateResponse>
 ```
 
 **Parameters:**
-```typescript
-interface UpdateThreadStateRequest {
-  config?: Record<string, any>;  // Optional configuration
-  state: Record<string, any>;    // State values to update
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| threadId | number | Yes | Unique thread identifier |
+| config | Record<string, any> | Yes | Configuration map for the thread |
+| state | any | Yes | New AgentState for the thread |
 
 **Returns:**
 ```typescript
@@ -391,16 +391,15 @@ interface UpdateThreadStateResponse {
 
 **Example:**
 ```typescript
-const response = await client.updateThreadState('thread_123', {
-  state: {
+const response = await client.updateThreadState(
+  123,
+  { validate: true },
+  {
     step: 'completed',
     progress: 100,
     result: { success: true }
-  },
-  config: {
-    validate: true
   }
-});
+);
 
 console.log(response.data.state);
 ```
@@ -422,14 +421,14 @@ Clear all state data from a thread.
 
 **Signature:**
 ```typescript
-clearThreadState(threadId: string): Promise<ClearThreadStateResponse>
+clearThreadState(threadId: number): Promise<ClearThreadStateResponse>
 ```
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| threadId | string | Yes | Unique thread identifier |
+| threadId | number | Yes | Unique thread identifier |
 
 **Returns:**
 ```typescript
@@ -464,17 +463,17 @@ Permanently delete a thread and all its associated data.
 **Signature:**
 ```typescript
 deleteThread(
-  threadId: string,
-  request?: DeleteThreadRequest
+  threadId: string | number,
+  config?: Record<string, any>
 ): Promise<DeleteThreadResponse>
 ```
 
 **Parameters:**
-```typescript
-interface DeleteThreadRequest {
-  config?: Record<string, any>;
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| threadId | string \| number | Yes | Unique thread identifier |
+| config | Record<string, any> | No | Optional configuration map |
 
 **Returns:**
 ```typescript
@@ -514,18 +513,21 @@ Get all messages from a thread with pagination.
 **Signature:**
 ```typescript
 threadMessages(
-  threadId: string,
-  options?: ThreadMessagesRequest
+  threadId: string | number,
+  search?: string,
+  offset?: number,
+  limit?: number
 ): Promise<ThreadMessagesResponse>
 ```
 
 **Parameters:**
-```typescript
-interface ThreadMessagesRequest {
-  offset?: number;  // Pagination offset (default: 0)
-  limit?: number;   // Number of results (default: 20)
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| threadId | string \| number | Yes | Unique thread identifier |
+| search | string | No | Optional search term to filter messages |
+| offset | number | No | Pagination offset (default: 0) |
+| limit | number | No | Number of results to return |
 
 **Returns:**
 ```typescript
@@ -544,10 +546,7 @@ interface ThreadMessagesResponse {
 const response = await client.threadMessages('thread_123');
 
 // Paginate
-const recent = await client.threadMessages('thread_123', {
-  offset: 0,
-  limit: 10
-});
+const recent = await client.threadMessages('thread_123', undefined, 0, 10);
 
 for (const message of recent.data.messages) {
   console.log(message.role, message.content);
@@ -570,8 +569,8 @@ Get a specific message from a thread by ID.
 
 **Signature:**
 ```typescript
-threadMessage(
-  threadId: string,
+singleMessage(
+  threadId: string | number,
   messageId: string
 ): Promise<ThreadMessageResponse>
 ```
@@ -596,7 +595,7 @@ interface ThreadMessageResponse {
 
 **Example:**
 ```typescript
-const response = await client.threadMessage('thread_123', 'msg_456');
+const response = await client.singleMessage('thread_123', 'msg_456');
 const message = response.data.message;
 console.log(message.role, message.content);
 ```
@@ -617,18 +616,21 @@ Add new messages to a thread.
 **Signature:**
 ```typescript
 addThreadMessages(
-  threadId: string,
-  request: AddThreadMessagesRequest
+  threadId: string | number,
+  messages: Message[],
+  config?: Record<string, any>,
+  metadata?: Record<string, any>
 ): Promise<AddThreadMessagesResponse>
 ```
 
 **Parameters:**
-```typescript
-interface AddThreadMessagesRequest {
-  config?: Record<string, any>;
-  messages: Message[];  // Array of messages to add
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| threadId | string \| number | Yes | Unique thread identifier |
+| messages | Message[] | Yes | Array of messages to add |
+| config | Record<string, any> | No | Configuration map (default: {}) |
+| metadata | Record<string, any> | No | Optional metadata for the checkpoint |
 
 **Returns:**
 ```typescript
@@ -645,12 +647,15 @@ interface AddThreadMessagesResponse {
 ```typescript
 import { Message } from '@10xscale/agentflow-client';
 
-const response = await client.addThreadMessages('thread_123', {
-  messages: [
+const response = await client.addThreadMessages(
+  'thread_123',
+  [
     Message.text_message('Hello, I need help', 'user'),
     Message.text_message('How can I assist you today?', 'assistant')
-  ]
-});
+  ],
+  {}, // config
+  { source: 'import' } // optional metadata
+);
 
 console.log(`Added ${response.data.messages.length} messages`);
 ```
@@ -672,9 +677,10 @@ Delete a specific message from a thread.
 
 **Signature:**
 ```typescript
-deleteThreadMessage(
-  threadId: string,
-  messageId: string
+deleteMessage(
+  threadId: string | number,
+  messageId: string,
+  config?: Record<string, any>
 ): Promise<DeleteThreadMessageResponse>
 ```
 
@@ -682,8 +688,9 @@ deleteThreadMessage(
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| threadId | string | Yes | Unique thread identifier |
+| threadId | string \| number | Yes | Unique thread identifier |
 | messageId | string | Yes | Unique message identifier |
+| config | Record<string, any> | No | Optional configuration map |
 
 **Returns:**
 ```typescript
@@ -698,7 +705,7 @@ interface DeleteThreadMessageResponse {
 
 **Example:**
 ```typescript
-const response = await client.deleteThreadMessage('thread_123', 'msg_456');
+const response = await client.deleteMessage('thread_123', 'msg_456');
 console.log(response.data.success);  // true
 ```
 
@@ -720,20 +727,30 @@ Execute the agent workflow synchronously with automatic tool execution loop.
 
 **Signature:**
 ```typescript
-invoke(request: InvokeRequest): Promise<InvokeResult>
+invoke(
+  messages: Message[],
+  options?: {
+    initial_state?: Record<string, any>;
+    config?: Record<string, any>;
+    recursion_limit?: number;
+    response_granularity?: 'full' | 'partial' | 'low';
+    onPartialResult?: InvokeCallback;
+  }
+): Promise<InvokeResult>
 ```
 
 **Parameters:**
-```typescript
-interface InvokeRequest {
-  messages: Message[];                    // Input messages
-  config?: Record<string, any>;           // Optional configuration
-  stream?: boolean;                       // Always false for invoke
-  granularity?: 'low' | 'partial' | 'full';  // Response detail level
-  recursion_limit?: number;               // Max tool execution iterations (default: 25)
-  on_progress?: InvokeCallback;           // Progress callback
-}
 
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| messages | Message[] | Yes | Array of input messages |
+| options.initial_state | Record<string, any> | No | Initial state for the agent |
+| options.config | Record<string, any> | No | Optional configuration |
+| options.recursion_limit | number | No | Max tool execution iterations (default: 25) |
+| options.response_granularity | string | No | Response detail level: 'low', 'partial', or 'full' |
+| options.onPartialResult | InvokeCallback | No | Progress callback function |
+
+```typescript
 type InvokeCallback = (result: InvokePartialResult) => void;
 ```
 
@@ -785,16 +802,16 @@ client.registerTool({
 });
 
 // Invoke with automatic tool execution
-const result = await client.invoke({
-  messages: [
-    Message.text_message("What's the weather in San Francisco?", 'user')
-  ],
-  granularity: 'full',
-  recursion_limit: 10,
-  on_progress: (partial) => {
-    console.log(`Iteration ${partial.iterations}`);
+const result = await client.invoke(
+  [Message.text_message("What's the weather in San Francisco?", 'user')],
+  {
+    response_granularity: 'full',
+    recursion_limit: 10,
+    onPartialResult: (partial) => {
+      console.log(`Iteration ${partial.iterations}`);
+    }
   }
-});
+);
 
 console.log(result.messages);        // Final response
 console.log(result.all_messages);    // All messages including tool calls
@@ -830,18 +847,26 @@ Execute the agent workflow with streaming responses.
 
 **Signature:**
 ```typescript
-stream(request: StreamRequest): AsyncIterableIterator<StreamChunk>
+stream(
+  messages: Message[],
+  options?: {
+    initial_state?: Record<string, any>;
+    config?: Record<string, any>;
+    recursion_limit?: number;
+    response_granularity?: 'full' | 'partial' | 'low';
+  }
+): AsyncGenerator<StreamChunk, void, unknown>
 ```
 
 **Parameters:**
-```typescript
-interface StreamRequest {
-  messages: Message[];                    // Input messages
-  config?: Record<string, any>;           // Optional configuration
-  stream?: boolean;                       // Always true for stream
-  granularity?: 'low' | 'partial' | 'full';  // Response detail level
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| messages | Message[] | Yes | Array of input messages |
+| options.initial_state | Record<string, any> | No | Initial state for the agent |
+| options.config | Record<string, any> | No | Optional configuration |
+| options.recursion_limit | number | No | Max iterations (default: 25) |
+| options.response_granularity | string | No | Response detail level (default: 'low') |
 
 **Returns:** AsyncIterableIterator yielding:
 ```typescript
@@ -867,12 +892,12 @@ type StreamEventType =
 import { Message } from '@10xscale/agentflow-client';
 
 try {
-  for await (const chunk of client.stream({
-    messages: [
-      Message.text_message("Tell me a story", 'user')
-    ],
-    granularity: 'full'
-  })) {
+  const stream = client.stream(
+    [Message.text_message("Tell me a story", 'user')],
+    { response_granularity: 'full' }
+  );
+  
+  for await (const chunk of stream) {
     switch (chunk.event) {
       case 'metadata':
         console.log('Request ID:', chunk.data.request_id);
@@ -1129,7 +1154,13 @@ Retrieve a specific memory by ID.
 
 **Signature:**
 ```typescript
-getMemory(memoryId: string): Promise<GetMemoryResponse>
+getMemory(
+  memoryId: string,
+  options?: {
+    config?: Record<string, any>;
+    options?: Record<string, any>;
+  }
+): Promise<GetMemoryResponse>
 ```
 
 **Parameters:**
@@ -1137,6 +1168,8 @@ getMemory(memoryId: string): Promise<GetMemoryResponse>
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | memoryId | string | Yes | Unique memory identifier |
+| options.config | Record<string, any> | No | Optional configuration |
+| options.options | Record<string, any> | No | Optional retrieval options |
 
 **Returns:**
 ```typescript
@@ -1150,7 +1183,9 @@ interface GetMemoryResponse {
 
 **Example:**
 ```typescript
-const response = await client.getMemory('mem_123');
+const response = await client.getMemory('mem_123', {
+  config: { include_vector: true }
+});
 const memory = response.data.memory;
 
 console.log(memory.content);
@@ -1175,21 +1210,24 @@ Update an existing memory's content or metadata.
 ```typescript
 updateMemory(
   memoryId: string,
-  request: UpdateMemoryRequest
+  content: string,
+  options?: {
+    config?: Record<string, any>;
+    options?: Record<string, any>;
+    metadata?: Record<string, any>;
+  }
 ): Promise<UpdateMemoryResponse>
 ```
 
 **Parameters:**
-```typescript
-interface UpdateMemoryRequest {
-  config?: Record<string, any>;
-  options?: Record<string, any>;
-  content?: string;                    // Updated content
-  memory_type?: MemoryType;            // Updated type
-  category?: string;                   // Updated category
-  metadata?: Record<string, any>;      // Updated metadata
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| memoryId | string | Yes | Unique memory identifier |
+| content | string | Yes | Updated content for the memory |
+| options.config | Record<string, any> | No | Optional configuration |
+| options.options | Record<string, any> | No | Optional update options |
+| options.metadata | Record<string, any> | No | Updated metadata |
 
 **Returns:**
 ```typescript
@@ -1203,15 +1241,18 @@ interface UpdateMemoryResponse {
 
 **Example:**
 ```typescript
-const response = await client.updateMemory('mem_123', {
-  content: 'Updated user preference: prefers light mode',
-  metadata: {
-    updated_at: new Date().toISOString(),
-    confidence: 0.95
+const response = await client.updateMemory(
+  'mem_123',
+  'Updated user preference: prefers light mode',
+  {
+    metadata: {
+      updated_at: new Date().toISOString(),
+      confidence: 0.95
+    }
   }
-});
+);
 
-console.log('Updated:', response.data.memory.content);
+console.log('Update success:', response.data.success);
 ```
 
 **Throws:**
@@ -1231,7 +1272,13 @@ Delete a specific memory by ID.
 
 **Signature:**
 ```typescript
-deleteMemory(memoryId: string): Promise<DeleteMemoryResponse>
+deleteMemory(
+  memoryId: string,
+  options?: {
+    config?: Record<string, any>;
+    options?: Record<string, any>;
+  }
+): Promise<DeleteMemoryResponse>
 ```
 
 **Parameters:**
@@ -1239,6 +1286,8 @@ deleteMemory(memoryId: string): Promise<DeleteMemoryResponse>
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | memoryId | string | Yes | Unique memory identifier |
+| options.config | Record<string, any> | No | Optional configuration |
+| options.options | Record<string, any> | No | Optional delete options |
 
 **Returns:**
 ```typescript
@@ -1274,21 +1323,22 @@ List all memories with optional filtering and pagination.
 
 **Signature:**
 ```typescript
-listMemories(request?: ListMemoriesRequest): Promise<ListMemoriesResponse>
+listMemories(
+  options?: {
+    config?: Record<string, any>;
+    options?: Record<string, any>;
+    limit?: number;
+  }
+): Promise<ListMemoriesResponse>
 ```
 
 **Parameters:**
-```typescript
-interface ListMemoriesRequest {
-  config?: Record<string, any>;
-  options?: Record<string, any>;
-  memory_type?: MemoryType;    // Filter by type
-  category?: string;            // Filter by category
-  offset?: number;              // Pagination offset (default: 0)
-  limit?: number;               // Number of results (default: 20)
-  filters?: Record<string, any>; // Additional filters
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| options.config | Record<string, any> | No | Optional configuration |
+| options.options | Record<string, any> | No | Optional retrieval options |
+| options.limit | number | No | Number of results to return |
 
 **Returns:**
 ```typescript
@@ -1303,14 +1353,10 @@ interface ListMemoriesResponse {
 
 **Example:**
 ```typescript
-import { MemoryType } from '@10xscale/agentflow-client';
-
-// List all semantic memories
+// List all memories with limit
 const response = await client.listMemories({
-  memory_type: MemoryType.SEMANTIC,
-  category: 'user_preferences',
-  offset: 0,
-  limit: 10
+  limit: 50,
+  config: { include_vectors: false }
 });
 
 console.log(`Found ${response.data.memories.length} memories`);
@@ -1334,22 +1380,26 @@ Delete multiple memories matching specified criteria.
 
 **Signature:**
 ```typescript
-forgetMemories(request: ForgetMemoriesRequest): Promise<ForgetMemoriesResponse>
+forgetMemories(
+  options?: {
+    config?: Record<string, any>;
+    options?: Record<string, any>;
+    memory_type?: any;
+    category?: string;
+    filters?: Record<string, any>;
+  }
+): Promise<ForgetMemoriesResponse>
 ```
 
 **Parameters:**
-```typescript
-interface ForgetMemoriesRequest {
-  config?: Record<string, any>;
-  options?: Record<string, any>;
-  memory_ids?: string[];               // Specific memory IDs to delete
-  memory_type?: MemoryType;            // Delete by type
-  category?: string;                   // Delete by category
-  filters?: Record<string, any>;       // Additional filters
-  before_date?: string;                // Delete memories before date
-  score_threshold?: number;            // Delete below similarity score
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| options.config | Record<string, any> | No | Optional configuration |
+| options.options | Record<string, any> | No | Optional forget options |
+| options.memory_type | any | No | Filter by memory type |
+| options.category | string | No | Filter by category |
+| options.filters | Record<string, any> | No | Additional filters |
 
 **Returns:**
 ```typescript
@@ -1366,19 +1416,14 @@ interface ForgetMemoriesResponse {
 ```typescript
 import { MemoryType } from '@10xscale/agentflow-client';
 
-// Delete specific memories
-const response1 = await client.forgetMemories({
-  memory_ids: ['mem_123', 'mem_456']
-});
-
-// Delete by category and type
-const response2 = await client.forgetMemories({
+// Forget memories by category and type
+const response = await client.forgetMemories({
   memory_type: MemoryType.EPISODIC,
-  category: 'old_conversations',
-  before_date: '2024-01-01T00:00:00Z'
+  category: 'temporary',
+  filters: { tag: 'delete-me' }
 });
 
-console.log(`Deleted ${response2.data.deleted_count} memories`);
+console.log('Forget success:', response.data.success);
 ```
 
 **Warning:** This operation is permanent and cannot be undone.

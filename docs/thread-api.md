@@ -62,17 +62,20 @@ Get all threads with optional search and pagination.
 
 **Signature:**
 ```typescript
-threads(options?: ThreadsRequest): Promise<ThreadsResponse>
+threads(
+  search?: string,
+  offset?: number,
+  limit?: number
+): Promise<ThreadsResponse>
 ```
 
 **Parameters:**
-```typescript
-interface ThreadsRequest {
-  search?: string;   // Search query to filter threads
-  offset?: number;   // Pagination offset (default: 0)
-  limit?: number;    // Number of results (default: 20)
-}
-```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| search | string | No | undefined | Search query to filter threads |
+| offset | number | No | 0 | Pagination offset |
+| limit | number | No | undefined | Number of results to return |
 
 **Returns:**
 ```typescript
@@ -104,14 +107,11 @@ for (const thread of response.data.threads) {
 }
 
 // Search threads
-const searchResults = await client.threads({
-  search: 'customer support',
-  limit: 10
-});
+const searchResults = await client.threads('customer support', 0, 10);
 
 // Paginate through threads
-const page1 = await client.threads({ offset: 0, limit: 20 });
-const page2 = await client.threads({ offset: 20, limit: 20 });
+const page1 = await client.threads(undefined, 0, 20);
+const page2 = await client.threads(undefined, 20, 20);
 ```
 
 ---
@@ -168,17 +168,17 @@ Permanently delete a thread and all its associated data.
 **Signature:**
 ```typescript
 deleteThread(
-  threadId: string,
-  request?: DeleteThreadRequest
+  threadId: string | number,
+  config?: Record<string, any>
 ): Promise<DeleteThreadResponse>
 ```
 
 **Parameters:**
-```typescript
-interface DeleteThreadRequest {
-  config?: Record<string, any>;
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| threadId | string \| number | Yes | Unique thread identifier |
+| config | Record<string, any> | No | Optional configuration map |
 
 **Returns:**
 ```typescript
@@ -198,11 +198,7 @@ const response = await client.deleteThread('thread_123');
 console.log('Deleted:', response.data.success);
 
 // With config
-await client.deleteThread('thread_456', {
-  config: {
-    cascade: true  // Delete all related data
-  }
-});
+await client.deleteThread('thread_456', { cascade: true });
 ```
 
 **Warning:** This operation is permanent and cannot be undone. All messages, state, and metadata associated with the thread will be deleted.
@@ -217,14 +213,14 @@ Retrieve the current state of a thread.
 
 **Signature:**
 ```typescript
-threadState(threadId: string): Promise<ThreadStateResponse>
+threadState(threadId: number): Promise<ThreadStateResponse>
 ```
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| threadId | string | Yes | Unique thread identifier |
+| threadId | number | Yes | Unique thread identifier |
 
 **Returns:**
 ```typescript
@@ -239,7 +235,7 @@ interface ThreadStateResponse {
 
 **Example:**
 ```typescript
-const response = await client.threadState('thread_123');
+const response = await client.threadState(123);
 const state = response.data.state;
 
 console.log('Current state:', state);
@@ -253,8 +249,8 @@ console.log('User data:', state.user_data);
 To understand available state fields, use the [State Schema API](./state-schema-guide.md):
 
 ```typescript
-const schema = await client.stateSchema();
-console.log('Available fields:', schema.data.fields);
+const schema = await client.graphStateSchema();
+console.log('Available fields:', schema.data.properties);
 ```
 
 ---
@@ -266,18 +262,19 @@ Update specific fields in the thread state.
 **Signature:**
 ```typescript
 updateThreadState(
-  threadId: string,
-  request: UpdateThreadStateRequest
+  threadId: number,
+  config: Record<string, any>,
+  state: any
 ): Promise<UpdateThreadStateResponse>
 ```
 
 **Parameters:**
-```typescript
-interface UpdateThreadStateRequest {
-  state: Record<string, any>;    // State values to update
-  config?: Record<string, any>;  // Optional configuration
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| threadId | number | Yes | Unique thread identifier |
+| config | Record<string, any> | Yes | Configuration map for the thread |
+| state | any | Yes | New AgentState for the thread |
 
 **Returns:**
 ```typescript
@@ -293,35 +290,23 @@ interface UpdateThreadStateResponse {
 **Example:**
 ```typescript
 // Update single field
-await client.updateThreadState('thread_123', {
-  state: {
-    step: 'processing'
-  }
-});
+await client.updateThreadState(123, {}, { step: 'processing' });
 
 // Update multiple fields
-await client.updateThreadState('thread_123', {
-  state: {
+await client.updateThreadState(
+  123,
+  { validate: true }, // config
+  {                   // state
     step: 'completed',
     progress: 100,
     result: {
       success: true,
-      data: { ... }
+      data: { /* ... */ }
     },
     updated_at: new Date().toISOString()
   }
-});
-
-// With validation config
-await client.updateThreadState('thread_123', {
-  state: {
-    user_preference: 'dark_mode'
-  },
-  config: {
-    validate: true,
-    merge: true  // Merge with existing state
-  }
-});
+);
+```
 ```
 
 **Merge Behavior:**
@@ -352,14 +337,14 @@ Clear all state data from a thread.
 
 **Signature:**
 ```typescript
-clearThreadState(threadId: string): Promise<ClearThreadStateResponse>
+clearThreadState(threadId: number): Promise<ClearThreadStateResponse>
 ```
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| threadId | string | Yes | Unique thread identifier |
+| threadId | number | Yes | Unique thread identifier |
 
 **Returns:**
 ```typescript
@@ -374,7 +359,7 @@ interface ClearThreadStateResponse {
 
 **Example:**
 ```typescript
-const response = await client.clearThreadState('thread_123');
+const response = await client.clearThreadState(123);
 console.log('State cleared:', response.data.success);
 ```
 
@@ -391,18 +376,21 @@ Get all messages from a thread with pagination.
 **Signature:**
 ```typescript
 threadMessages(
-  threadId: string,
-  options?: ThreadMessagesRequest
+  threadId: string | number,
+  search?: string,
+  offset?: number,
+  limit?: number
 ): Promise<ThreadMessagesResponse>
 ```
 
 **Parameters:**
-```typescript
-interface ThreadMessagesRequest {
-  offset?: number;  // Pagination offset (default: 0)
-  limit?: number;   // Number of results (default: 20)
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| threadId | string \| number | Yes | Unique thread identifier |
+| search | string | No | Optional search term to filter messages |
+| offset | number | No | Pagination offset (default: 0) |
+| limit | number | No | Number of results to return |
 
 **Returns:**
 ```typescript
@@ -426,16 +414,10 @@ for (const message of response.data.messages) {
 }
 
 // Paginate messages
-const recent = await client.threadMessages('thread_123', {
-  offset: 0,
-  limit: 10
-});
+const recent = await client.threadMessages('thread_123', undefined, 0, 10);
 
 // Get older messages
-const older = await client.threadMessages('thread_123', {
-  offset: 10,
-  limit: 10
-});
+const older = await client.threadMessages('thread_123', undefined, 10, 10);
 ```
 
 ---
@@ -446,8 +428,8 @@ Get a specific message from a thread by ID.
 
 **Signature:**
 ```typescript
-threadMessage(
-  threadId: string,
+singleMessage(
+  threadId: string | number,
   messageId: string
 ): Promise<ThreadMessageResponse>
 ```
@@ -456,7 +438,7 @@ threadMessage(
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| threadId | string | Yes | Unique thread identifier |
+| threadId | string \| number | Yes | Unique thread identifier |
 | messageId | string | Yes | Unique message identifier |
 
 **Returns:**
@@ -472,7 +454,7 @@ interface ThreadMessageResponse {
 
 **Example:**
 ```typescript
-const response = await client.threadMessage('thread_123', 'msg_456');
+const response = await client.singleMessage('thread_123', 'msg_456');
 const message = response.data.message;
 
 console.log('Role:', message.role);
@@ -488,18 +470,21 @@ Add new messages to a thread.
 **Signature:**
 ```typescript
 addThreadMessages(
-  threadId: string,
-  request: AddThreadMessagesRequest
+  threadId: string | number,
+  messages: Message[],
+  config?: Record<string, any>,
+  metadata?: Record<string, any>
 ): Promise<AddThreadMessagesResponse>
 ```
 
 **Parameters:**
-```typescript
-interface AddThreadMessagesRequest {
-  messages: Message[];           // Array of messages to add
-  config?: Record<string, any>;  // Optional configuration
-}
-```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| threadId | string \| number | Yes | Unique thread identifier |
+| messages | Message[] | Yes | Array of messages to add |
+| config | Record<string, any> | No | Configuration map (default: {}) |
+| metadata | Record<string, any> | No | Optional metadata for the checkpoint |
 
 **Returns:**
 ```typescript
@@ -517,20 +502,22 @@ interface AddThreadMessagesResponse {
 import { Message } from '@10xscale/agentflow-client';
 
 // Add user message
-await client.addThreadMessages('thread_123', {
-  messages: [
-    Message.text_message('What is the weather today?', 'user')
-  ]
-});
+await client.addThreadMessages(
+  'thread_123',
+  [Message.text_message('What is the weather today?', 'user')]
+);
 
 // Add multiple messages
-await client.addThreadMessages('thread_123', {
-  messages: [
+await client.addThreadMessages(
+  'thread_123',
+  [
     Message.text_message('Tell me about your services', 'user'),
     Message.text_message('We offer three main services: A, B, and C', 'assistant'),
     Message.text_message('Tell me more about service B', 'user')
-  ]
-});
+  ],
+  {},  // config
+  { source: 'import' }  // metadata
+);
 
 // Add system message
 await client.addThreadMessages('thread_123', {
@@ -570,9 +557,10 @@ Delete a specific message from a thread.
 
 **Signature:**
 ```typescript
-deleteThreadMessage(
-  threadId: string,
-  messageId: string
+deleteMessage(
+  threadId: string | number,
+  messageId: string,
+  config?: Record<string, any>
 ): Promise<DeleteThreadMessageResponse>
 ```
 
@@ -580,8 +568,9 @@ deleteThreadMessage(
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| threadId | string | Yes | Unique thread identifier |
+| threadId | string \| number | Yes | Unique thread identifier |
 | messageId | string | Yes | Unique message identifier |
+| config | Record<string, any> | No | Optional configuration map |
 
 **Returns:**
 ```typescript
@@ -596,7 +585,7 @@ interface DeleteThreadMessageResponse {
 
 **Example:**
 ```typescript
-const response = await client.deleteThreadMessage('thread_123', 'msg_456');
+const response = await client.deleteMessage('thread_123', 'msg_456');
 console.log('Deleted:', response.data.success);
 ```
 
@@ -614,22 +603,25 @@ async function initializeUserSession(userId: string) {
   const threadId = `thread_${userId}_${Date.now()}`;
   
   // Set initial state
-  await client.updateThreadState(threadId, {
-    state: {
+  await client.updateThreadState(
+    parseInt(threadId.split('_')[2]),  // thread ID as number
+    {}, // config
+    {   // state
       user_id: userId,
       session_start: new Date().toISOString(),
       step: 'initialized',
       preferences: {}
     }
-  });
+  );
   
   // Add welcome message
-  await client.addThreadMessages(threadId, {
-    messages: [
+  await client.addThreadMessages(
+    threadId,
+    [
       Message.text_message('You are a helpful assistant', 'system'),
       Message.text_message('Hello! How can I help you today?', 'assistant')
     ]
-  });
+  );
   
   return threadId;
 }
@@ -637,28 +629,16 @@ async function initializeUserSession(userId: string) {
 // Handle user message
 async function handleUserMessage(threadId: string, userInput: string) {
   // Add user message
-  await client.addThreadMessages(threadId, {
-    messages: [Message.text_message(userInput, 'user')]
-  });
-  
-  // Get current state for context
-  const state = await client.threadState(threadId);
+  await client.addThreadMessages(
+    threadId,
+    [Message.text_message(userInput, 'user')]
+  );
   
   // Execute agent
-  const result = await client.invoke({
-    messages: [Message.text_message(userInput, 'user')],
-    config: {
-      thread_id: threadId,
-      state: state.data.state
-    }
-  });
-  
-  // Update state based on result
-  if (result.state) {
-    await client.updateThreadState(threadId, {
-      state: result.state
-    });
-  }
+  const result = await client.invoke(
+    [Message.text_message(userInput, 'user')],
+    { config: { thread_id: threadId } }
+  );
   
   return result.messages;
 }
@@ -677,19 +657,21 @@ enum WorkflowStep {
 }
 
 // Initialize workflow
-async function startWorkflow(threadId: string) {
-  await client.updateThreadState(threadId, {
-    state: {
+async function startWorkflow(threadId: number) {
+  await client.updateThreadState(
+    threadId,
+    {}, // config
+    {   // state
       step: WorkflowStep.INIT,
       progress: 0,
       data: {},
       history: []
     }
-  });
+  );
 }
 
 // Advance workflow
-async function advanceWorkflow(threadId: string, data: any) {
+async function advanceWorkflow(threadId: number, data: any) {
   const current = await client.threadState(threadId);
   const currentStep = current.data.state.step;
   
@@ -717,31 +699,33 @@ async function advanceWorkflow(threadId: string, data: any) {
       throw new Error('Invalid workflow step');
   }
   
-  await client.updateThreadState(threadId, {
-    state: {
+  await client.updateThreadState(
+    threadId,
+    {}, // config
+    {   // state
       step: nextStep,
       progress,
       data: { ...current.data.state.data, ...data },
       history: [...current.data.state.history, currentStep]
     }
-  });
+  );
 }
 ```
 
 ### 3. Conversation History Export
 
 ```typescript
-async function exportConversation(threadId: string) {
+async function exportConversation(threadId: string | number) {
   // Get thread details
   const details = await client.threadDetails(threadId);
   
   // Get all messages
-  const messagesResponse = await client.threadMessages(threadId, {
-    limit: 1000  // Adjust as needed
-  });
+  const messagesResponse = await client.threadMessages(threadId, undefined, undefined, 1000);
   
-  // Get final state
-  const stateResponse = await client.threadState(threadId);
+  // Get final state (if threadId is a number)
+  const stateResponse = typeof threadId === 'number' 
+    ? await client.threadState(threadId)
+    : null;
   
   // Create export
   const exportData = {
@@ -756,7 +740,7 @@ async function exportConversation(threadId: string) {
       content: msg.content,
       timestamp: msg.timestamp || null
     })),
-    state: stateResponse.data.state,
+    state: stateResponse?.data.state || null,
     exported_at: new Date().toISOString()
   };
   
@@ -769,14 +753,14 @@ async function exportConversation(threadId: string) {
 ```typescript
 async function cleanupOldThreads(daysOld: number = 30) {
   // Get all threads
-  const threads = await client.threads({ limit: 1000 });
+  const threadsResponse = await client.threads(undefined, undefined, 1000);
   
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - daysOld);
   
   const deletedThreads: string[] = [];
   
-  for (const thread of threads.data.threads) {
+  for (const thread of threadsResponse.data.threads) {
     if (thread.updated_at) {
       const updatedDate = new Date(thread.updated_at);
       
@@ -820,15 +804,17 @@ const threadId = await createThread('test');
 async function createThread(userId: string, purpose: string) {
   const threadId = generateThreadId();
   
-  await client.updateThreadState(threadId, {
-    state: {
+  await client.updateThreadState(
+    threadId,
+    {}, // config
+    {   // state
       user_id: userId,
       purpose: purpose,
       created_at: new Date().toISOString(),
       step: 'initialized',
       data: {}
     }
-  });
+  );
   
   return threadId;
 }
@@ -838,7 +824,7 @@ async function createThread(userId: string, purpose: string) {
 
 ```typescript
 // Clear state periodically for long conversations
-async function resetThreadState(threadId: string, keepFields: string[] = []) {
+async function resetThreadState(threadId: number, keepFields: string[] = []) {
   const current = await client.threadState(threadId);
   const preserved: Record<string, any> = {};
   
@@ -851,12 +837,12 @@ async function resetThreadState(threadId: string, keepFields: string[] = []) {
   await client.clearThreadState(threadId);
   
   if (Object.keys(preserved).length > 0) {
-    await client.updateThreadState(threadId, { state: preserved });
+    await client.updateThreadState(threadId, {}, preserved);
   }
 }
 
 // Usage
-await resetThreadState('thread_123', ['user_id', 'preferences']);
+await resetThreadState(123, ['user_id', 'preferences']);
 ```
 
 ### 4. Handle Not Found Gracefully
@@ -864,19 +850,21 @@ await resetThreadState('thread_123', ['user_id', 'preferences']);
 ```typescript
 import { NotFoundError } from '@10xscale/agentflow-client';
 
-async function getOrCreateThread(threadId: string, userId: string) {
+async function getOrCreateThread(threadId: number, userId: string) {
   try {
     const details = await client.threadDetails(threadId);
     return threadId;
   } catch (error) {
     if (error instanceof NotFoundError) {
       // Thread doesn't exist, create it
-      await client.updateThreadState(threadId, {
-        state: {
+      await client.updateThreadState(
+        threadId,
+        {},
+        {
           user_id: userId,
           created_at: new Date().toISOString()
         }
-      });
+      );
       return threadId;
     }
     throw error;
@@ -894,10 +882,7 @@ async function getAllMessages(threadId: string): Promise<Message[]> {
   const limit = 100;
   
   while (true) {
-    const response = await client.threadMessages(threadId, {
-      offset,
-      limit
-    });
+    const response = await client.threadMessages(threadId, undefined, offset, limit);
     
     allMessages.push(...response.data.messages);
     
@@ -916,8 +901,10 @@ async function getAllMessages(threadId: string): Promise<Message[]> {
 
 ```typescript
 // ✅ Good: Use state for thread metadata
-await client.updateThreadState(threadId, {
-  state: {
+await client.updateThreadState(
+  threadId,
+  {}, // config
+  {   // state
     user_id: 'user_123',
     session_start: new Date().toISOString(),
     user_agent: navigator.userAgent,
@@ -928,7 +915,7 @@ await client.updateThreadState(threadId, {
       campaign: 'summer_2024'
     }
   }
-});
+);
 ```
 
 ---
@@ -974,7 +961,7 @@ const client = new AgentFlowClient({
 });
 
 async function conversationExample() {
-  const threadId = 'thread_example_123';
+  const threadId = 123;
   
   try {
     // 1. Check if thread exists
@@ -984,42 +971,45 @@ async function conversationExample() {
     } catch (error) {
       if (error instanceof NotFoundError) {
         // Initialize new thread
-        await client.updateThreadState(threadId, {
-          state: {
+        await client.updateThreadState(
+          threadId,
+          {},
+          {
             user_id: 'user_123',
             created_at: new Date().toISOString(),
             step: 'init',
             message_count: 0
           }
-        });
+        );
         console.log('Created new thread');
       }
     }
     
     // 2. Add messages
-    await client.addThreadMessages(threadId, {
-      messages: [
-        Message.text_message('Hello, I need help', 'user')
-      ]
-    });
+    await client.addThreadMessages(
+      threadId,
+      [Message.text_message('Hello, I need help', 'user')]
+    );
     
     // 3. Get current state
     const state = await client.threadState(threadId);
     console.log('Current state:', state.data.state);
     
     // 4. Execute agent (simplified)
-    const result = await client.invoke({
-      messages: [Message.text_message('Hello, I need help', 'user')],
-      config: { thread_id: threadId }
-    });
+    const result = await client.invoke(
+      [Message.text_message('Hello, I need help', 'user')],
+      { config: { thread_id: threadId } }
+    );
     
     // 5. Update state
-    await client.updateThreadState(threadId, {
-      state: {
+    await client.updateThreadState(
+      threadId,
+      {},
+      {
         message_count: state.data.state.message_count + 1,
         last_message: new Date().toISOString()
       }
-    });
+    );
     
     // 6. Get all messages
     const messages = await client.threadMessages(threadId);

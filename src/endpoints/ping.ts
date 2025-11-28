@@ -22,7 +22,7 @@ export async function ping(context: PingContext): Promise<PingResponse> {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), context.timeout);
 
-        const response = await fetch(`${context.baseUrl}/ping`, {
+        const response = await fetch(`${context.baseUrl}/v1/ping`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
