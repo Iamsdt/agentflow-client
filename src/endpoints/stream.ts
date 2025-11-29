@@ -48,7 +48,7 @@ export interface StreamChunk {
 }
 
 /**
- * Parse NDJSON stream and yield individual chunks
+ * Parse NDJSON stream and yield individual chunks immediately as they arrive
  * Handles streaming response body as async iterable
  * Supports both newline-separated and concatenated JSON objects
  */
@@ -65,34 +65,8 @@ async function* parseStreamChunks(
 
             if (done) {
                 // Process any remaining data in buffer
-                while (buffer.trim()) {
-                    try {
-                        const chunk = JSON.parse(buffer) as StreamChunk;
-                        if (debug) {
-                            console.debug('AgentFlowClient: Final stream chunk:', chunk);
-                        }
-                        yield chunk;
-                        break; // Successfully parsed, exit
-                    } catch (error) {
-                        // Try to extract complete JSON objects from concatenated format
-                        const extracted = extractFirstJSON(buffer);
-                        if (extracted) {
-                            try {
-                                const chunk = JSON.parse(extracted.json) as StreamChunk;
-                                if (debug) {
-                                    console.debug('AgentFlowClient: Stream chunk received:', chunk.event);
-                                }
-                                yield chunk;
-                                buffer = extracted.remaining;
-                            } catch (parseError) {
-                                console.warn('AgentFlowClient: Failed to parse buffer:', buffer.slice(0, 100), parseError);
-                                break;
-                            }
-                        } else {
-                            console.warn('AgentFlowClient: Failed to parse final buffer:', buffer.slice(0, 100), error);
-                            break;
-                        }
-                    }
+                if (buffer.trim()) {
+                    yield* processBuffer(buffer, debug, true);
                 }
                 break;
             }
@@ -100,51 +74,84 @@ async function* parseStreamChunks(
             // Append new data to buffer
             buffer += decoder.decode(value, { stream: true });
 
-            // Process complete JSON objects
-            // Try newline-separated format first (standard NDJSON)
-            if (buffer.includes('\n')) {
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || ''; // Keep incomplete line in buffer
-
-                for (const line of lines) {
-                    if (line.trim()) {
-                        try {
-                            const chunk = JSON.parse(line) as StreamChunk;
-                            if (debug) {
-                                console.debug('AgentFlowClient: Stream chunk received:', chunk.event);
-                            }
-                            yield chunk;
-                        } catch (error) {
-                            console.warn('AgentFlowClient: Failed to parse stream line:', line.slice(0, 100), error);
-                        }
-                    }
-                }
-            } else {
-                // Handle concatenated JSON objects (no newlines)
-                while (buffer.trim()) {
-                    const extracted = extractFirstJSON(buffer);
-                    if (extracted) {
-                        try {
-                            const chunk = JSON.parse(extracted.json) as StreamChunk;
-                            if (debug) {
-                                console.debug('AgentFlowClient: Stream chunk received:', chunk.event);
-                            }
-                            yield chunk;
-                            buffer = extracted.remaining;
-                        } catch (error) {
-                            console.warn('AgentFlowClient: Failed to parse concatenated JSON:', extracted.json.slice(0, 100), error);
-                            break;
-                        }
-                    } else {
-                        // Incomplete JSON, wait for more data
-                        break;
-                    }
-                }
-            }
+            // Immediately process and yield all complete chunks
+            const result = yield* processBuffer(buffer, debug, false);
+            buffer = result.remaining;
         }
     } finally {
         reader.releaseLock();
     }
+}
+
+/**
+ * Process buffer and yield all complete JSON chunks
+ * Returns the remaining incomplete buffer
+ */
+function* processBuffer(
+    buffer: string,
+    debug: boolean,
+    isFinal: boolean
+): Generator<StreamChunk, { remaining: string }, unknown> {
+    // First, try to process newline-separated lines (NDJSON format)
+    while (buffer.includes('\n')) {
+        const newlineIndex = buffer.indexOf('\n');
+        const line = buffer.slice(0, newlineIndex).trim();
+        buffer = buffer.slice(newlineIndex + 1);
+
+        if (line) {
+            try {
+                const chunk = JSON.parse(line) as StreamChunk;
+                if (debug) {
+                    console.debug('AgentFlowClient: Stream chunk received (NDJSON):', chunk.event);
+                }
+                yield chunk;
+            } catch (error) {
+                if (debug) {
+                    console.warn('AgentFlowClient: Failed to parse NDJSON line:', line.slice(0, 100), error);
+                }
+            }
+        }
+    }
+
+    // Then, try to extract concatenated JSON objects (no newlines)
+    while (buffer.trim()) {
+        const extracted = extractFirstJSON(buffer);
+        if (extracted) {
+            try {
+                const chunk = JSON.parse(extracted.json) as StreamChunk;
+                if (debug) {
+                    console.debug('AgentFlowClient: Stream chunk received (concat):', chunk.event);
+                }
+                yield chunk;
+                buffer = extracted.remaining;
+            } catch (error) {
+                if (debug) {
+                    console.warn('AgentFlowClient: Failed to parse concatenated JSON:', extracted.json.slice(0, 100), error);
+                }
+                break;
+            }
+        } else {
+            // Incomplete JSON, keep in buffer
+            if (isFinal && buffer.trim()) {
+                // On final read, try to parse what's left
+                try {
+                    const chunk = JSON.parse(buffer.trim()) as StreamChunk;
+                    if (debug) {
+                        console.debug('AgentFlowClient: Final stream chunk:', chunk.event);
+                    }
+                    yield chunk;
+                    buffer = '';
+                } catch (error) {
+                    if (debug) {
+                        console.warn('AgentFlowClient: Failed to parse final buffer:', buffer.slice(0, 100), error);
+                    }
+                }
+            }
+            break;
+        }
+    }
+
+    return { remaining: buffer };
 }
 
 /**
@@ -217,7 +224,7 @@ async function makeSingleStreamCall(
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'accept': 'application/json',
+                'Accept': 'application/x-ndjson, application/json',
                 ...(context.authToken && { 'Authorization': `Bearer ${context.authToken}` })
             },
             body: JSON.stringify(request),
@@ -337,7 +344,7 @@ export async function* streamInvoke(
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'accept': 'application/json',
+                    'Accept': 'application/x-ndjson, application/json',
                     ...(context.authToken && { 'Authorization': `Bearer ${context.authToken}` })
                 },
                 body: JSON.stringify(iterationRequest),

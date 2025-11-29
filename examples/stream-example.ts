@@ -19,7 +19,6 @@ async function basicStreamExample() {
     // Create client
     const client = new AgentFlowClient({
         baseUrl: 'http://127.0.0.1:8000',
-        authToken: process.env.AGENTFLOW_TOKEN,
         debug: true
     });
 

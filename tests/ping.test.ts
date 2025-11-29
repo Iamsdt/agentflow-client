@@ -47,7 +47,7 @@ describe('Ping Endpoint Tests', () => {
       const result = await ping(mockContext);
 
       expect(result).toEqual(mockResponse);
-      expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/v1/ping', {
+      expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/ping', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ describe('Ping Endpoint Tests', () => {
       const result = await ping(contextWithoutAuth);
 
       expect(result).toEqual(mockResponse);
-      expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/v1/ping', {
+      expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/ping', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -108,7 +108,7 @@ describe('Ping Endpoint Tests', () => {
       const result = await ping(contextWithNullAuth);
 
       expect(result).toEqual(mockResponse);
-      expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/v1/ping', {
+      expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/ping', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
