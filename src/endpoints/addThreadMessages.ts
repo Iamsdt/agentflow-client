@@ -62,7 +62,7 @@ export async function addThreadMessages(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Add checkpoint messages failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Add thread messages failed');
+            const error = await createErrorFromResponse(response, 'Add thread messages failed', '/v1/threads/{thread_id}/messages', 'POST');
             throw error;
         }
 

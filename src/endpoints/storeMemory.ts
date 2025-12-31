@@ -77,7 +77,7 @@ export async function storeMemory(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Store memory failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Store memory request failed');
+            const error = await createErrorFromResponse(response, 'Store memory request failed', '/v1/memory', 'POST');
             throw error;
         }
 

@@ -69,7 +69,7 @@ export async function graph(context: GraphContext): Promise<GraphResponse> {
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Graph fetch failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Graph fetch failed');
+            const error = await createErrorFromResponse(response, 'Graph fetch failed', '/v1/graph', 'GET');
             throw error;
         }
 

@@ -86,7 +86,7 @@ export async function threads(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Threads list fetch failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Threads list fetch failed');
+            const error = await createErrorFromResponse(response, 'Threads list fetch failed', '/v1/threads', 'GET');
             throw error;
         }
 

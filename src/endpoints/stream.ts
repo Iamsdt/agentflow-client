@@ -235,7 +235,7 @@ async function makeSingleStreamCall(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Stream failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Stream request failed');
+            const error = await createErrorFromResponse(response, 'Stream request failed', '/v1/stream', 'POST');
             throw error;
         }
 
@@ -355,7 +355,7 @@ export async function* streamInvoke(
 
             if (!response.ok) {
                 console.warn(`AgentFlowClient: Stream failed with HTTP ${response.status}`);
-                const error = await createErrorFromResponse(response, 'Stream request failed');
+                const error = await createErrorFromResponse(response, 'Stream request failed', '/v1/stream', 'POST');
                 throw error;
             }
 

@@ -44,7 +44,7 @@ export async function threadState(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Thread state fetch failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Thread state fetch failed');
+            const error = await createErrorFromResponse(response, 'Thread state fetch failed', '/v1/threads/{thread_id}/state', 'GET');
             throw error;
         }
 

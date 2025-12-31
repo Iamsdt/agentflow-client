@@ -58,7 +58,7 @@ export async function deleteThread(
             console.warn(
                 `AgentFlowClient: Delete thread failed with HTTP ${response.status}`
             );
-            const error = await createErrorFromResponse(response, 'Delete thread failed');
+            const error = await createErrorFromResponse(response, 'Delete thread failed', '/v1/threads/{thread_id}', 'DELETE');
             throw error;
         }
 

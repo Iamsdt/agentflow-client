@@ -66,7 +66,7 @@ export async function listMemories(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: List memories failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'List memories request failed');
+            const error = await createErrorFromResponse(response, 'List memories request failed', '/v1/memory', 'GET');
             throw error;
         }
 

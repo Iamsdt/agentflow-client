@@ -108,7 +108,7 @@ export async function searchMemory(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Search memory failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Search memory request failed');
+            const error = await createErrorFromResponse(response, 'Search memory request failed', '/v1/memory/search', 'POST');
             throw error;
         }
 

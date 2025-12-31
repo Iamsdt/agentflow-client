@@ -32,6 +32,10 @@ export class AgentFlowError extends Error {
     public readonly requestId: string;
     public readonly timestamp: string;
     public readonly details: ErrorDetail[];
+    public readonly context?: Record<string, any>;
+    public readonly endpoint?: string;
+    public readonly method?: string;
+    public readonly recoverySuggestion?: string;
 
     constructor(
         message: string,
@@ -39,7 +43,11 @@ export class AgentFlowError extends Error {
         errorCode: string,
         requestId: string,
         timestamp: string,
-        details: ErrorDetail[] = []
+        details: ErrorDetail[] = [],
+        context?: Record<string, any>,
+        endpoint?: string,
+        method?: string,
+        recoverySuggestion?: string
     ) {
         super(message);
         this.name = 'AgentFlowError';
@@ -48,11 +56,45 @@ export class AgentFlowError extends Error {
         this.requestId = requestId;
         this.timestamp = timestamp;
         this.details = details;
+        this.context = context;
+        this.endpoint = endpoint;
+        this.method = method;
+        this.recoverySuggestion = recoverySuggestion;
 
         // Maintains proper stack trace for where our error was thrown (only available on V8)
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, this.constructor);
         }
+    }
+
+    /**
+     * Get a user-friendly error message with recovery suggestion
+     */
+    getUserMessage(): string {
+        if (this.recoverySuggestion) {
+            return `${this.message}\n\nSuggestion: ${this.recoverySuggestion}`;
+        }
+        return this.message;
+    }
+
+    /**
+     * Get full error details for debugging
+     */
+    toJSON(): Record<string, any> {
+        return {
+            name: this.name,
+            message: this.message,
+            statusCode: this.statusCode,
+            errorCode: this.errorCode,
+            requestId: this.requestId,
+            timestamp: this.timestamp,
+            details: this.details,
+            context: this.context,
+            endpoint: this.endpoint,
+            method: this.method,
+            recoverySuggestion: this.recoverySuggestion,
+            stack: this.stack
+        };
     }
 }
 
@@ -155,6 +197,245 @@ export class ServerError extends AgentFlowError {
 }
 
 /**
+ * Graph Error
+ * Thrown when there's an error in graph execution
+ */
+export class GraphError extends AgentFlowError {
+    constructor(
+        message: string,
+        requestId: string,
+        timestamp: string,
+        details: ErrorDetail[] = [],
+        context?: Record<string, any>
+    ) {
+        super(
+            message,
+            500,
+            'GRAPH_ERROR',
+            requestId,
+            timestamp,
+            details,
+            context,
+            undefined,
+            undefined,
+            'Check your graph configuration and ensure all nodes are properly connected.'
+        );
+        this.name = 'GraphError';
+    }
+}
+
+/**
+ * Node Error
+ * Thrown when there's an error executing a specific node
+ */
+export class NodeError extends AgentFlowError {
+    public readonly nodeName?: string;
+
+    constructor(
+        message: string,
+        requestId: string,
+        timestamp: string,
+        details: ErrorDetail[] = [],
+        context?: Record<string, any>,
+        nodeName?: string
+    ) {
+        super(
+            message,
+            500,
+            'NODE_ERROR',
+            requestId,
+            timestamp,
+            details,
+            context,
+            undefined,
+            undefined,
+            'Review the node implementation and ensure all required inputs are provided.'
+        );
+        this.name = 'NodeError';
+        this.nodeName = nodeName;
+    }
+}
+
+/**
+ * Graph Recursion Error
+ * Thrown when graph execution exceeds the recursion limit
+ */
+export class GraphRecursionError extends AgentFlowError {
+    public readonly recursionLimit?: number;
+
+    constructor(
+        message: string,
+        requestId: string,
+        timestamp: string,
+        details: ErrorDetail[] = [],
+        context?: Record<string, any>,
+        recursionLimit?: number
+    ) {
+        super(
+            message,
+            500,
+            'GRAPH_RECURSION_ERROR',
+            requestId,
+            timestamp,
+            details,
+            context,
+            undefined,
+            undefined,
+            'Consider increasing the recursion_limit parameter or check for infinite loops in your graph.'
+        );
+        this.name = 'GraphRecursionError';
+        this.recursionLimit = recursionLimit;
+    }
+}
+
+/**
+ * Storage Error
+ * Thrown when there's an error accessing storage
+ */
+export class StorageError extends AgentFlowError {
+    constructor(
+        message: string,
+        requestId: string,
+        timestamp: string,
+        details: ErrorDetail[] = [],
+        context?: Record<string, any>
+    ) {
+        super(
+            message,
+            500,
+            'STORAGE_ERROR',
+            requestId,
+            timestamp,
+            details,
+            context,
+            undefined,
+            undefined,
+            'Check your storage configuration and ensure the storage backend is accessible.'
+        );
+        this.name = 'StorageError';
+    }
+}
+
+/**
+ * Transient Storage Error
+ * Thrown when there's a temporary storage issue (503 Service Unavailable)
+ */
+export class TransientStorageError extends AgentFlowError {
+    constructor(
+        message: string,
+        requestId: string,
+        timestamp: string,
+        details: ErrorDetail[] = [],
+        context?: Record<string, any>
+    ) {
+        super(
+            message,
+            503,
+            'TRANSIENT_STORAGE_ERROR',
+            requestId,
+            timestamp,
+            details,
+            context,
+            undefined,
+            undefined,
+            'This is a temporary issue. Please retry your request after a short delay.'
+        );
+        this.name = 'TransientStorageError';
+    }
+}
+
+/**
+ * Metrics Error
+ * Thrown when there's an error collecting or reporting metrics
+ */
+export class MetricsError extends AgentFlowError {
+    constructor(
+        message: string,
+        requestId: string,
+        timestamp: string,
+        details: ErrorDetail[] = [],
+        context?: Record<string, any>
+    ) {
+        super(
+            message,
+            500,
+            'METRICS_ERROR',
+            requestId,
+            timestamp,
+            details,
+            context,
+            undefined,
+            undefined,
+            'Check your metrics configuration. This error typically doesn\'t affect core functionality.'
+        );
+        this.name = 'MetricsError';
+    }
+}
+
+/**
+ * Schema Version Error
+ * Thrown when there's a version mismatch in data schemas
+ */
+export class SchemaVersionError extends AgentFlowError {
+    public readonly expectedVersion?: string;
+    public readonly actualVersion?: string;
+
+    constructor(
+        message: string,
+        requestId: string,
+        timestamp: string,
+        details: ErrorDetail[] = [],
+        context?: Record<string, any>,
+        expectedVersion?: string,
+        actualVersion?: string
+    ) {
+        super(
+            message,
+            422,
+            'SCHEMA_VERSION_ERROR',
+            requestId,
+            timestamp,
+            details,
+            context,
+            undefined,
+            undefined,
+            'Update your client to match the server schema version or contact support.'
+        );
+        this.name = 'SchemaVersionError';
+        this.expectedVersion = expectedVersion;
+        this.actualVersion = actualVersion;
+    }
+}
+
+/**
+ * Serialization Error
+ * Thrown when there's an error serializing or deserializing data
+ */
+export class SerializationError extends AgentFlowError {
+    constructor(
+        message: string,
+        requestId: string,
+        timestamp: string,
+        details: ErrorDetail[] = [],
+        context?: Record<string, any>
+    ) {
+        super(
+            message,
+            500,
+            'SERIALIZATION_ERROR',
+            requestId,
+            timestamp,
+            details,
+            context,
+            undefined,
+            undefined,
+            'Ensure your data format is compatible with the API schema.'
+        );
+        this.name = 'SerializationError';
+    }
+}
+
+/**
  * Parse error response from API
  */
 export async function parseErrorResponse(response: Response): Promise<ApiErrorResponse | null> {
@@ -171,11 +452,13 @@ export async function parseErrorResponse(response: Response): Promise<ApiErrorRe
 }
 
 /**
- * Create appropriate error instance based on HTTP status code
+ * Create appropriate error instance based on HTTP status code and error code
  */
 export async function createErrorFromResponse(
     response: Response,
-    fallbackMessage?: string
+    fallbackMessage?: string,
+    endpoint?: string,
+    method?: string
 ): Promise<AgentFlowError> {
     const errorData = await parseErrorResponse(response);
     
@@ -186,7 +469,28 @@ export async function createErrorFromResponse(
         const requestId = metadata.request_id || 'unknown';
         const timestamp = metadata.timestamp || new Date().toISOString();
         const details = error.details || [];
+        const errorCode = error.code || '';
 
+        // Try to match specific error types by error code first (takes priority)
+        if (errorCode.startsWith('GRAPH_RECURSION')) {
+            return new GraphRecursionError(message, requestId, timestamp, details);
+        } else if (errorCode.startsWith('GRAPH')) {
+            return new GraphError(message, requestId, timestamp, details);
+        } else if (errorCode.startsWith('NODE')) {
+            return new NodeError(message, requestId, timestamp, details);
+        } else if (errorCode.startsWith('TRANSIENT_STORAGE')) {
+            return new TransientStorageError(message, requestId, timestamp, details);
+        } else if (errorCode.startsWith('STORAGE')) {
+            return new StorageError(message, requestId, timestamp, details);
+        } else if (errorCode.startsWith('METRICS')) {
+            return new MetricsError(message, requestId, timestamp, details);
+        } else if (errorCode.startsWith('SCHEMA_VERSION')) {
+            return new SchemaVersionError(message, requestId, timestamp, details);
+        } else if (errorCode.startsWith('SERIALIZATION')) {
+            return new SerializationError(message, requestId, timestamp, details);
+        }
+
+        // Match by HTTP status code
         switch (response.status) {
             case 400:
                 return new BadRequestError(message, requestId, timestamp, details);
@@ -206,7 +510,7 @@ export async function createErrorFromResponse(
                     message,
                     requestId,
                     timestamp,
-                    error.code || 'INTERNAL_SERVER_ERROR',
+                    errorCode || 'INTERNAL_SERVER_ERROR',
                     details,
                     response.status
                 );
@@ -214,10 +518,13 @@ export async function createErrorFromResponse(
                 return new AgentFlowError(
                     message,
                     response.status,
-                    error.code || 'UNKNOWN_ERROR',
+                    errorCode || 'UNKNOWN_ERROR',
                     requestId,
                     timestamp,
-                    details
+                    details,
+                    undefined,
+                    endpoint,
+                    method
                 );
         }
     }
@@ -248,7 +555,11 @@ export async function createErrorFromResponse(
                 response.status,
                 'UNKNOWN_ERROR',
                 'unknown',
-                timestamp
+                timestamp,
+                [],
+                undefined,
+                endpoint,
+                method
             );
     }
 }

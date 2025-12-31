@@ -60,7 +60,7 @@ export async function deleteThreadMessage(
             console.warn(
                 `AgentFlowClient: Delete thread message failed with HTTP ${response.status}`
             );
-            const error = await createErrorFromResponse(response, 'Delete thread message failed');
+            const error = await createErrorFromResponse(response, 'Delete thread message failed', '/v1/threads/{thread_id}/messages/{message_id}', 'DELETE');
             throw error;
         }
 

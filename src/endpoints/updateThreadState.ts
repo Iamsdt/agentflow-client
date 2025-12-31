@@ -52,7 +52,7 @@ export async function updateThreadState(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Thread state update failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Thread state update failed');
+            const error = await createErrorFromResponse(response, 'Thread state update failed', '/v1/threads/{thread_id}/state', 'PUT');
             throw error;
         }
 

@@ -35,7 +35,7 @@ export async function ping(context: PingContext): Promise<PingResponse> {
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Ping failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Ping request failed');
+            const error = await createErrorFromResponse(response, 'Ping request failed', '/v1/ping', 'GET');
             throw error;
         }
 

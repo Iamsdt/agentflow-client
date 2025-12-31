@@ -58,7 +58,7 @@ export async function getMemory(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Get memory failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Get memory request failed');
+            const error = await createErrorFromResponse(response, 'Get memory request failed', '/v1/memory/{memory_id}', 'GET');
             throw error;
         }
 

@@ -57,7 +57,7 @@ export async function threadMessage(
             console.warn(
                 `AgentFlowClient: Thread message fetch failed with HTTP ${response.status}`
             );
-            const error = await createErrorFromResponse(response, 'Thread message fetch failed');
+            const error = await createErrorFromResponse(response, 'Thread message fetch failed', '/v1/threads/{thread_id}/messages/{message_id}', 'GET');
             throw error;
         }
 

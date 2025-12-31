@@ -63,7 +63,7 @@ export async function deleteMemory(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Delete memory failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Delete memory request failed');
+            const error = await createErrorFromResponse(response, 'Delete memory request failed', '/v1/memory/{memory_id}', 'DELETE');
             throw error;
         }
 

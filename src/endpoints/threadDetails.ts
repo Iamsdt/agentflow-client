@@ -51,7 +51,7 @@ export async function threadDetails(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Thread details fetch failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Thread details fetch failed');
+            const error = await createErrorFromResponse(response, 'Thread details fetch failed', '/v1/threads/{thread_id}', 'GET');
             throw error;
         }
 
