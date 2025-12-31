@@ -78,7 +78,7 @@ export async function stateSchema(context: StateSchemaContext): Promise<StateSch
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: State schema fetch failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'State schema fetch failed');
+            const error = await createErrorFromResponse(response, 'State schema fetch failed', '/v1/state_schema', 'GET');
             throw error;
         }
 

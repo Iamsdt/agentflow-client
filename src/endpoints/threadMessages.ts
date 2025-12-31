@@ -71,7 +71,7 @@ export async function threadMessages(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Checkpoint messages fetch failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Thread messages fetch failed');
+            const error = await createErrorFromResponse(response, 'Thread messages fetch failed', '/v1/threads/{thread_id}/messages', 'GET');
             throw error;
         }
 

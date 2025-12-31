@@ -45,7 +45,7 @@ export async function clearThreadState(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Thread state clear failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Thread state clear failed');
+            const error = await createErrorFromResponse(response, 'Thread state clear failed', '/v1/threads/{thread_id}/state', 'DELETE');
             throw error;
         }
 

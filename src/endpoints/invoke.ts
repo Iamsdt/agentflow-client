@@ -95,7 +95,7 @@ async function makeSingleInvokeCall(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Invoke failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Invoke request failed');
+            const error = await createErrorFromResponse(response, 'Invoke request failed', '/v1/invoke', 'POST');
             throw error;
         }
 

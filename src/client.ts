@@ -70,6 +70,25 @@ import {
     ForgetMemoriesRequest,
     ForgetMemoriesResponse
 } from './endpoints/forgetMemories.js';
+import {
+    stopGraph as stopGraphEndpoint,
+    StopGraphContext,
+    StopGraphRequest,
+    StopGraphResponse
+} from './endpoints/stopGraph.js';
+import {
+    fixGraph as fixGraphEndpoint,
+    FixGraphContext,
+    FixGraphRequest,
+    FixGraphResponse
+} from './endpoints/fixGraph.js';
+import {
+    setupGraph as setupGraphEndpoint,
+    SetupGraphContext,
+    SetupGraphRequest,
+    SetupGraphResponse,
+    RemoteTool
+} from './endpoints/setupGraph.js';
 
 export interface AgentFlowConfig {
     baseUrl: string;
@@ -108,18 +127,35 @@ export class AgentFlowClient {
     }
 
     /**
-     * Setup tools on the server (dummy implementation for now)
-     * In the future, this will send tool definitions to the server
+     * Setup tools on the server by sending tool definitions
+     * This registers remote tools with the backend for graph execution
      */
-    async setup(): Promise<void> {
+    async setup(): Promise<SetupGraphResponse> {
         if (this.debug) {
-            console.debug('AgentFlowClient: Setting up tools on server (dummy implementation)');
+            console.debug('AgentFlowClient: Setting up tools on server');
             console.debug(`AgentFlowClient: ${this.toolRegistrations.length} tools registered`);
         }
         
-        // TODO: Implement actual server setup when backend is ready
-        // For now, this is a no-op
-        return Promise.resolve();
+        // Convert tool registrations to RemoteTool format
+        const remoteTools: RemoteTool[] = this.toolRegistrations.map(reg => ({
+            node_name: reg.node,
+            name: reg.name,
+            description: reg.description || '',
+            parameters: reg.parameters || {}
+        }));
+
+        const context: SetupGraphContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: SetupGraphRequest = {
+            tools: remoteTools
+        };
+
+        return setupGraphEndpoint(context, request);
     }
 
     
@@ -150,6 +186,56 @@ export class AgentFlowClient {
 
         return graph(context);
     }
+
+    /**
+     * Stop a running graph execution for a specific thread
+     * @param threadId - The ID of the thread to stop execution for
+     * @param config - Optional configuration for the stop operation
+     * @returns StopGraphResponse with the stop operation result
+     */
+    async stopGraph(threadId: string, config?: Record<string, any>): Promise<StopGraphResponse> {
+        const context: StopGraphContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: StopGraphRequest = {
+            thread_id: threadId,
+            config
+        };
+
+        return stopGraphEndpoint(context, request);
+    }
+
+    /**
+     * Fix graph state by removing messages with empty tool calls
+     * This is useful for cleaning up incomplete tool call messages that may have 
+     * failed or been interrupted during execution.
+     * 
+     * @param threadId - The ID of the thread to fix state for
+     * @param config - Optional configuration for the fix operation
+     * @returns FixGraphResponse with the fix operation result including removed_count
+     */
+    async fixGraph(threadId: string, config?: Record<string, any>): Promise<FixGraphResponse> {
+        const context: FixGraphContext = {
+            baseUrl: this.baseUrl,
+            authToken: this.authToken,
+            timeout: this.timeout,
+            debug: this.debug
+        };
+
+        const request: FixGraphRequest = {
+            thread_id: threadId,
+            config
+        };
+
+        return fixGraphEndpoint(context, request);
+    }
+
+    /**
+     * 
 
     /**
      * Fetch the state schema of the agent

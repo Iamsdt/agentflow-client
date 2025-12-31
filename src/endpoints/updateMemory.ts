@@ -66,7 +66,7 @@ export async function updateMemory(
 
         if (!response.ok) {
             console.warn(`AgentFlowClient: Update memory failed with HTTP ${response.status}`);
-            const error = await createErrorFromResponse(response, 'Update memory request failed');
+            const error = await createErrorFromResponse(response, 'Update memory request failed', '/v1/memory/{memory_id}', 'PUT');
             throw error;
         }
 
