@@ -2,6 +2,8 @@ import { ToolDefinition, ToolRegistration, ToolExecutor } from './tools.js';
 import { Message } from './message.js';
 import { ping, PingContext, PingResponse } from './endpoints/ping.js';
 import { graph, GraphContext, GraphResponse } from './endpoints/graph.js';
+import { graphTools, GraphToolsContext, GraphToolsResponse } from './endpoints/graphTools.js';
+import { observability, ObservabilityContext, ObservabilityResponse } from './endpoints/observability.js';
 import { stateSchema, StateSchemaContext, StateSchemaResponse } from './endpoints/stateSchema.js';
 import { threadState, ThreadStateContext, ThreadStateResponse } from './endpoints/threadState.js';
 import { updateThreadState, UpdateThreadStateContext, UpdateThreadStateRequest, UpdateThreadStateResponse } from './endpoints/updateThreadState.js';
@@ -274,6 +276,26 @@ export class AgentFlowClient {
         const context = this.createContext<GraphContext>();
 
         return graph(context);
+    }
+
+    /**
+     * Fetch the tools exposed by the graph's tool nodes, grouped by node.
+     * Each tool is tagged with its source (local / mcp / remote).
+     */
+    async graphTools(): Promise<GraphToolsResponse> {
+        const context = this.createContext<GraphToolsContext>();
+
+        return graphTools(context);
+    }
+
+    /**
+     * Fetch the reconstructed observability trace (spans, events, cost) for a
+     * thread. Returns the latest run by default, or a specific run when given.
+     */
+    async observability(threadId: string, runId?: string): Promise<ObservabilityResponse> {
+        const context = this.createContext<ObservabilityContext>();
+
+        return observability(context, threadId, runId);
     }
 
     /**

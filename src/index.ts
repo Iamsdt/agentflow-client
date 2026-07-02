@@ -16,6 +16,12 @@ export * from './endpoints/ping.js';
 // Export graph Response types
 export * from './endpoints/graph.js';
 
+// Export graph tools Response types
+export * from './endpoints/graphTools.js';
+
+// Export observability Response types
+export * from './endpoints/observability.js';
+
 // Export stop graph Response types
 export * from './endpoints/stopGraph.js';
 
