@@ -205,6 +205,43 @@ describe('uploadFile with mocked fetch', () => {
     globalThis.fetch = originalFetch;
   });
 
+  it('should upload a Blob on runtimes without a global File (Node 18)', async () => {
+    const mockResponse = {
+      ok: true,
+      json: async () => ({ data: { file_id: 'no-file-global' } }),
+    };
+    globalThis.fetch = vi.fn().mockResolvedValue(mockResponse) as any;
+
+    // Node 18 has no global File. An unguarded `instanceof File` throws ReferenceError
+    // there, which broke uploadFile for every Node 18 consumer. FormData is stubbed too:
+    // on Node 20+ the built-in implementation reaches for the global File itself, which
+    // would make this test fail for a reason Node 18 never hits.
+    const originalFile = globalThis.File;
+    const originalFormData = globalThis.FormData;
+    // @ts-expect-error - deliberately removing the global to emulate Node 18
+    delete globalThis.File;
+    globalThis.FormData = class {
+      entries: unknown[] = [];
+      append(...args: unknown[]) {
+        this.entries.push(args);
+      }
+    } as unknown as typeof FormData;
+
+    try {
+      const { uploadFile } = await import('../src/endpoints/files');
+      const result = await uploadFile(
+        { baseUrl: 'http://localhost:8000', timeout: 5000, debug: false },
+        new Blob(['data'], { type: 'image/png' })
+      );
+
+      expect(result.data.file_id).toBe('no-file-global');
+    } finally {
+      globalThis.File = originalFile;
+      globalThis.FormData = originalFormData;
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it('should call /v1/files/{file_id}/url for access URL lookup', async () => {
     const mockResponse = {
       ok: true,

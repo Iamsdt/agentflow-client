@@ -26,6 +26,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **`uploadFile()` threw on Node 18.** `File` only became a global in Node 20, and the
+  upload path did an unguarded `file instanceof File`, so on Node 18 every call failed with
+  `ReferenceError: File is not defined` - including calls passing a plain `Blob`, which
+  never needed the global at all. The package declares `engines.node >= 18`, so this broke
+  file upload for supported runtimes. The check is now guarded before it touches the
+  global, and a regression test runs the upload path with `File` removed.
 - **`npm publish` would have failed.** `@10xscale/agentflow-client` is a scoped package,
   and scoped packages default to `restricted`. Without `publishConfig.access: "public"`
   the publish is rejected. Added, along with `provenance: true`.

@@ -93,7 +93,9 @@ export async function uploadFile(
   try {
     const formData = new FormData();
 
-    if (file instanceof File) {
+    // `File` only became a global in Node 20; this package supports Node 18, where a bare
+    // `instanceof File` throws ReferenceError. Guard before touching the global.
+    if (typeof File !== 'undefined' && file instanceof File) {
       formData.append('file', file, file.name);
     } else if ('data' in file && 'filename' in file) {
       formData.append('file', file.data, file.filename);
