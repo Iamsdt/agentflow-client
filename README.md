@@ -213,6 +213,26 @@ const schema = await client.graphStateSchema();
 // Build forms, validate data, generate types
 ```
 
+### `graphTools()` - Tool Inventory
+
+List the tools the graph's tool nodes expose, grouped by node. Each tool is tagged with its
+source (`local`, `mcp`, or `remote`):
+
+```typescript
+const { data } = await client.graphTools();
+// data.nodes[].tools[] -> { name, description, source, parameters }
+```
+
+### `observability(threadId, runId?)` - Run Traces
+
+Fetch the reconstructed trace for a run - spans, events, and cost. Defaults to the thread's
+latest run:
+
+```typescript
+const trace = await client.observability(threadId);
+const specific = await client.observability(threadId, runId);
+```
+
 ### Tool Registration
 
 Register local tools that agents can execute:

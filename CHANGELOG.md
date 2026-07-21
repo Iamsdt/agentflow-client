@@ -20,6 +20,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.3.0] - 2026-07-21
+
 ### Fixed
 
 - **`npm publish` would have failed.** `@10xscale/agentflow-client` is a scoped package,
@@ -40,6 +44,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `client.graphTools()` - lists the tools exposed by the graph's tool nodes, grouped by
+  node, each tagged with its source (`local` / `mcp` / `remote`). Types are exported from
+  `endpoints/graphTools.ts`.
+- `client.observability(threadId, runId?)` - returns the reconstructed trace (spans,
+  events, cost) for a thread, defaulting to the latest run. Types are exported from
+  `endpoints/observability.ts`.
 - ESLint 9 (flat config) and Prettier, with `lint`, `format`, `typecheck`, and an
   aggregate `check` script.
 - `tsconfig.build.json` for declaration emit, separate from the type-check config.
@@ -85,5 +95,6 @@ Initial entry in this changelog. Releases before `0.2.0` were not tracked here.
 - Added the realtime audio client (`client.realtime(...)` returning `RealtimeSession`).
 - Added dual ESM/CJS exports.
 
-[Unreleased]: https://github.com/10xHub/agentflow/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/10xHub/agentflow/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/10xHub/agentflow/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/10xHub/agentflow/releases/tag/v0.2.0

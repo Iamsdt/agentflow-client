@@ -5,10 +5,21 @@ Human-facing notes for the current release. For the full history see
 
 ---
 
-## Unreleased
+## 0.3.0
 
-A production-readiness pass. No new features; it fixes packaging, security, and tooling
-defects that made the previous release unsafe to publish or depend on.
+A production-readiness pass that fixes packaging, security, and tooling defects which made
+the previous release unsafe to publish or depend on, plus two new read-only endpoints.
+
+### Two new endpoints
+
+`client.graphTools()` returns the tools your graph's tool nodes expose, grouped by node and
+tagged with their source (`local`, `mcp`, or `remote`) - useful for showing users what an
+agent can actually do without inspecting the server config.
+
+`client.observability(threadId, runId?)` returns the reconstructed trace for a run: spans,
+events, and cost. It defaults to the thread's latest run; pass `runId` for a specific one.
+
+Both are additive. Their request and response types are exported from the package root.
 
 ### `npm publish` would have failed outright
 
