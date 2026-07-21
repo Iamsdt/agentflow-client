@@ -7,7 +7,7 @@ API server it talks to, see `agentflow-api/CLAUDE.md`; for the core framework se
 - Package name (npm): `@10xscale/agentflow-client`
 - Version: `0.2.0` · License: MIT · `"type": "module"` (ESM-first)
 - Runtime: Node >= 18 (uses global `fetch`); also browser-targetable
-- Language: TypeScript 5+, built with `tsc` + Vite, tested with Vitest
+- Language: TypeScript 5+, built with `tsc` + Vite 7, tested with Vitest 3
 
 ## What this package is
 
@@ -20,16 +20,16 @@ the client runs it locally and returns the result, with recursion handling).
 
 Entry point: `src/index.ts` -> `dist/index.js`. Source map:
 
-| Path | What lives there |
-|---|---|
-| `src/client.ts` | `AgentFlowClient` (the main class) and `AgentFlowConfig` |
-| `src/agent.ts` | `AgentState` (dynamic state container + `ExecutionMeta`). Note: this is NOT a high-level "Agent" wrapper class |
-| `src/tools.ts` | Client-side tool execution: `ToolExecutor`, `ToolRegistration`, `ToolHandler`, `Tool`, `ToolDefinition` |
-| `src/message.ts` | Message + content-block model mirroring the Python core (`TextBlock`, `ImageBlock`, `AudioBlock`, `VideoBlock`, `DocumentBlock`, `DataBlock`, `ToolCallBlock`, `RemoteToolCallBlock`, `MediaRef`, `AnnotationRef`, ...) |
-| `src/request.ts` | Low-level request/auth helpers; `AgentFlowAuth` (Bearer / Basic / Header), `RequestContext` |
-| `src/errors.ts` | Error types |
+| Path             | What lives there                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/client.ts`  | `AgentFlowClient` (the main class) and `AgentFlowConfig`                                                                                                                                                                                                                                                                                                                                                                                  |
+| `src/agent.ts`   | `AgentState` (dynamic state container + `ExecutionMeta`). Note: this is NOT a high-level "Agent" wrapper class                                                                                                                                                                                                                                                                                                                            |
+| `src/tools.ts`   | Client-side tool execution: `ToolExecutor`, `ToolRegistration`, `ToolHandler`, `Tool`, `ToolDefinition`                                                                                                                                                                                                                                                                                                                                   |
+| `src/message.ts` | Message + content-block model mirroring the Python core (`TextBlock`, `ImageBlock`, `AudioBlock`, `VideoBlock`, `DocumentBlock`, `DataBlock`, `ToolCallBlock`, `RemoteToolCallBlock`, `MediaRef`, `AnnotationRef`, ...)                                                                                                                                                                                                                   |
+| `src/request.ts` | Low-level request/auth helpers; `AgentFlowAuth` (Bearer / Basic / Header), `RequestContext`                                                                                                                                                                                                                                                                                                                                               |
+| `src/errors.ts`  | Error types                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `src/endpoints/` | One file per endpoint (request/response types + call impl): invoke, stream, wsStream, graph, setupGraph, stopGraph, fixGraph, stateSchema, threads, threadDetails, threadState, updateThreadState, clearThreadState, threadMessages, addThreadMessages, threadMessage, deleteThreadMessage, deleteThread, storeMemory, searchMemory, getMemory, updateMemory, deleteMemory, listMemories, forgetMemories, files, metadata, ping, realtime |
-| `src/ws.ts` | Shared WebSocket plumbing: subprotocol auth, URL building, injectable impl |
+| `src/ws.ts`      | Shared WebSocket plumbing: subprotocol auth, URL building, injectable impl                                                                                                                                                                                                                                                                                                                                                                |
 
 ## `AgentFlowClient`
 
@@ -37,7 +37,7 @@ Entry point: `src/index.ts` -> `dist/index.js`. Source map:
 import { AgentFlowClient, Message } from '@10xscale/agentflow-client';
 
 const client = new AgentFlowClient({
-  baseUrl: 'http://localhost:8000',  // required
+  baseUrl: 'http://localhost:8000', // required
   // authToken?: string | null
   // auth?: AgentFlowAuth | null      // Bearer | Basic | Header
   // headers?: HeadersInit
@@ -81,16 +81,18 @@ Pass via `auth` in the config, or use the simpler `authToken` for bearer tokens.
 ```bash
 # from this folder (agentflow-client/)
 npm install
-npm run build        # tsc + vite build + copy dist-types
+npm run build        # rimraf dist + tsc declarations + vite bundle (no `cp`)
 npm test             # vitest (watch)
 npm run test:run     # vitest run (CI)
 npm run test:coverage
 ```
 
-- Tests live in `tests/` (~33 vitest files, one per endpoint/feature). `prepublishOnly` runs
-  build + tests.
-- `examples/` shows usage; `check.ts` is a large local scratch/integration script (not part of the
-  build).
+- Tests live in `tests/` (35 vitest files, 536 tests, one per endpoint/feature).
+  `prepublishOnly` runs the full `check` gate then builds.
+- `examples/` shows usage. `check.ts` was removed in the readiness pass (unreferenced scratch
+  script importing a non-existent path).
+- Lint/format/types: `npm run check` = eslint + `tsc --noEmit` + vitest. `tsconfig.json`
+  type-checks `tests/` as well as `src/`; `tsconfig.build.json` is declaration-emit only.
 
 ## Known doc drift (do not trust without checking)
 
@@ -99,3 +101,12 @@ npm run test:coverage
   `AgentState`. The high-level entry point is `AgentFlowClient` in `src/client.ts`.
 - **0.2.0 changes:** a2a, a2ui, and the React surface were removed. The realtime audio client
   (`client.realtime(...)` returning `RealtimeSession`) and dual ESM/CJS exports were added.
+
+- **Do not reference the `NodeJS` namespace in `src/`.** This package targets browsers too;
+  ambient Node typings force every consumer to install `@types/node`. Use portable forms
+  such as `ReturnType<typeof setTimeout>`.
+- **`publishConfig.access: "public"` is load-bearing.** Scoped packages default to
+  `restricted`; without it `npm publish` is rejected.
+- **Build scripts must be cross-platform.** The old `cp -r dist-types/* dist/` broke Windows.
+  Also note `vite build` empties `outDir` by default, so declaration emit and bundling must
+  not fight over `dist/` (`emptyOutDir: false` plus an explicit `clean` step).

@@ -14,17 +14,17 @@ class MockWS {
   binaryType = 'blob';
   sent: any[] = [];
   closedWith?: number;
-  private listeners: Record<string, Function[]> = {};
+  private listeners: Record<string, ((...a: any[]) => any)[]> = {};
 
   constructor(url: string, protocols?: any) {
     this.url = url;
     this.protocols = protocols;
     MockWS.instances.push(this);
   }
-  addEventListener(type: string, cb: Function) {
+  addEventListener(type: string, cb: (...a: any[]) => any) {
     (this.listeners[type] ??= []).push(cb);
   }
-  removeEventListener(type: string, cb: Function) {
+  removeEventListener(type: string, cb: (...a: any[]) => any) {
     this.listeners[type] = (this.listeners[type] ?? []).filter((f) => f !== cb);
   }
   send(data: any) {
@@ -48,9 +48,17 @@ class MockWS {
   }
 }
 
-const baseCtx = { baseUrl: 'http://localhost:8000', authToken: 'tok' };
+const baseCtx = {
+  baseUrl: 'http://localhost:8000',
+  authToken: 'tok',
+  timeout: 5000,
+  debug: false,
+};
 
-function newSession(init: any = { model: 'gemini-2.5-flash-live', thread_id: 't1' }, options?: any) {
+function newSession(
+  init: any = { model: 'gemini-2.5-flash-live', thread_id: 't1' },
+  options?: any
+) {
   return new RealtimeSession({ ...baseCtx, webSocketImpl: MockWS as any }, init, options);
 }
 

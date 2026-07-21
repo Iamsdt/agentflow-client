@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/10xHub/agentflow/security/advisories/new
+    about: Report privately through a draft security advisory. Never in a public issue.
+  - name: API server issue (routes, auth, rate limiting)
+    url: https://github.com/10xHub/agentflow-cli/issues
+    about: If the server is returning the wrong thing, file it against agentflow-api.
+  - name: Core framework issue (StateGraph, ToolNode, memory)
+    url: https://github.com/10xHub/agentflow/issues
+    about: For graph execution problems in the Python core.
+  - name: Documentation
+    url: https://10xhub.github.io/Agentflow/
+    about: Check the docs before filing.
+  - name: Questions and usage help
+    url: https://github.com/10xHub/agentflow/discussions
+    about: Ask in Discussions rather than opening an issue.

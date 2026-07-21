@@ -3,12 +3,11 @@ import { deleteThread } from '../src/endpoints/deleteThread';
 import type {
   DeleteThreadContext,
   DeleteThreadRequest,
-  DeleteThreadResponse
+  DeleteThreadResponse,
 } from '../src/endpoints/deleteThread';
 
 // Mock fetch globally
 const fetchMock = vi.fn();
-// @ts-ignore
 global.fetch = fetchMock;
 
 describe('Delete Thread Endpoint Tests', () => {
@@ -20,12 +19,12 @@ describe('Delete Thread Endpoint Tests', () => {
       baseUrl: 'http://localhost:8000',
       authToken: 'test-token',
       timeout: 5000,
-      debug: false
+      debug: false,
     };
 
     mockRequest = {
       threadId: 5,
-      config: {}
+      config: {},
     };
 
     fetchMock.mockReset();
@@ -42,18 +41,18 @@ describe('Delete Thread Endpoint Tests', () => {
         data: {
           success: true,
           message: 'Thread deleted successfully',
-          data: true
+          data: true,
         },
         metadata: {
           request_id: 'c7fe0175-af50-4b4f-971a-b3a43ee3e552',
           timestamp: '2025-10-26T01:32:32.680953',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -68,7 +67,7 @@ describe('Delete Thread Endpoint Tests', () => {
     it('should call correct URL and method with headers and body', async () => {
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -89,7 +88,7 @@ describe('Delete Thread Endpoint Tests', () => {
       const req: DeleteThreadRequest = { threadId: 't-5', config: {} };
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -104,7 +103,7 @@ describe('Delete Thread Endpoint Tests', () => {
       const req: DeleteThreadRequest = { threadId: 42, config: {} };
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -119,7 +118,7 @@ describe('Delete Thread Endpoint Tests', () => {
       const ctx: DeleteThreadContext = { ...mockContext, authToken: null };
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -131,13 +130,13 @@ describe('Delete Thread Endpoint Tests', () => {
     });
 
     it('should send custom config in request body', async () => {
-      const req: DeleteThreadRequest = { 
-        threadId: 5, 
-        config: { customKey: 'customValue', nested: { data: true } } 
+      const req: DeleteThreadRequest = {
+        threadId: 5,
+        config: { customKey: 'customValue', nested: { data: true } },
       };
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -153,7 +152,7 @@ describe('Delete Thread Endpoint Tests', () => {
       const req: DeleteThreadRequest = { threadId: 5 };
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -194,11 +193,14 @@ describe('Delete Thread Endpoint Tests', () => {
     it('should timeout when request takes too long', async () => {
       const slowContext = { ...mockContext, timeout: 50 };
       fetchMock.mockImplementation(
-        () => new Promise((_, reject) => {
-          setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
-        })
+        () =>
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
+          })
       );
-      await expect(deleteThread(slowContext, mockRequest)).rejects.toThrow('Request timeout after 50ms');
+      await expect(deleteThread(slowContext, mockRequest)).rejects.toThrow(
+        'Request timeout after 50ms'
+      );
     });
 
     it('should handle network error', async () => {
@@ -210,7 +212,9 @@ describe('Delete Thread Endpoint Tests', () => {
       const error = new Error('The operation was aborted');
       error.name = 'AbortError';
       fetchMock.mockRejectedValue(error);
-      await expect(deleteThread(mockContext, mockRequest)).rejects.toThrow('Request timeout after 5000ms');
+      await expect(deleteThread(mockContext, mockRequest)).rejects.toThrow(
+        'Request timeout after 5000ms'
+      );
     });
   });
 
@@ -219,20 +223,17 @@ describe('Delete Thread Endpoint Tests', () => {
       const debugContext = { ...mockContext, debug: true };
       const consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
       const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-      
+
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
       await deleteThread(debugContext, mockRequest);
 
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
-        'AgentFlowClient: Deleting thread',
-        'thread: 5'
-      );
+      expect(consoleDebugSpy).toHaveBeenCalledWith('AgentFlowClient: Deleting thread', 'thread: 5');
       expect(consoleInfoSpy).toHaveBeenCalledWith(
         'AgentFlowClient: Thread deleted successfully',
         mockResponse
@@ -245,10 +246,10 @@ describe('Delete Thread Endpoint Tests', () => {
     it('should not log debug messages when debug is false', async () => {
       const consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
       const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-      
+
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -279,11 +280,12 @@ describe('Delete Thread Endpoint Tests', () => {
     it('should log timeout warning', async () => {
       const slowContext = { ...mockContext, timeout: 50 };
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       fetchMock.mockImplementation(
-        () => new Promise((_, reject) => {
-          setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
-        })
+        () =>
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
+          })
       );
 
       await expect(deleteThread(slowContext, mockRequest)).rejects.toThrow();
@@ -300,7 +302,7 @@ describe('Delete Thread Endpoint Tests', () => {
     it('should clear timeout on successful response', async () => {
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -316,7 +318,7 @@ describe('Delete Thread Endpoint Tests', () => {
     it('should pass abort signal to fetch', async () => {
       const mockResponse: DeleteThreadResponse = {
         data: { success: true, message: 'Thread deleted successfully', data: true },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);

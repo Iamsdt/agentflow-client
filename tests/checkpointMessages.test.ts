@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { checkpointMessages } from '../src/endpoints/threadMessages';
-import type { ThreadMessagesContext, ThreadMessagesRequest, ThreadMessagesResponse } from '../src/endpoints/threadMessages';
+import type {
+  ThreadMessagesContext,
+  ThreadMessagesRequest,
+  ThreadMessagesResponse,
+} from '../src/endpoints/threadMessages';
 import { Message, TextBlock } from '../src/message';
 
 // Mock fetch globally
@@ -16,14 +20,14 @@ describe('Thread Messages Endpoint Tests', () => {
       baseUrl: 'http://localhost:8000',
       authToken: 'test-token',
       timeout: 5000,
-      debug: false
+      debug: false,
     };
 
     mockRequest = {
       threadId: 5,
       search: 'test',
       offset: 0,
-      limit: 10
+      limit: 10,
     };
 
     // Reset mocks
@@ -37,24 +41,22 @@ describe('Thread Messages Endpoint Tests', () => {
 
   describe('Successful checkpoint messages fetch', () => {
     it('should return checkpoint messages response with correct structure', async () => {
-      const mockMessage = new Message('assistant', [
-        { type: 'text', text: 'Hello' } as TextBlock
-      ]);
+      const mockMessage = new Message('assistant', [{ type: 'text', text: 'Hello' } as TextBlock]);
 
       const mockResponse: ThreadMessagesResponse = {
         data: {
-          messages: [mockMessage]
+          messages: [mockMessage],
         },
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-24T16:10:10.693427',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -71,13 +73,13 @@ describe('Thread Messages Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-24T16:10:10.693427',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -85,7 +87,7 @@ describe('Thread Messages Endpoint Tests', () => {
 
       const callArgs = fetchMock.mock.calls[0];
       const url = callArgs[0];
-      
+
       expect(url).toContain('/v1/threads/5/messages');
       expect(url).toContain('search=test');
       expect(url).toContain('offset=0');
@@ -94,7 +96,7 @@ describe('Thread Messages Endpoint Tests', () => {
 
     it('should work with only threadId parameter', async () => {
       const simpleRequest: ThreadMessagesRequest = {
-        threadId: 5
+        threadId: 5,
       };
 
       const mockResponse: ThreadMessagesResponse = {
@@ -102,13 +104,13 @@ describe('Thread Messages Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-24T16:10:10.693427',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -122,7 +124,7 @@ describe('Thread Messages Endpoint Tests', () => {
     it('should work with string threadId', async () => {
       const stringThreadRequest: ThreadMessagesRequest = {
         threadId: 'thread-abc-123',
-        search: 'query'
+        search: 'query',
       };
 
       const mockResponse: ThreadMessagesResponse = {
@@ -130,13 +132,13 @@ describe('Thread Messages Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-24T16:10:10.693427',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -155,13 +157,13 @@ describe('Thread Messages Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-24T16:10:10.693427',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -177,7 +179,7 @@ describe('Thread Messages Endpoint Tests', () => {
     it('should throw error for non-2xx HTTP status', async () => {
       const mockFetchResponse = {
         ok: false,
-        status: 404
+        status: 404,
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -187,7 +189,7 @@ describe('Thread Messages Endpoint Tests', () => {
     it('should throw error for 500 status', async () => {
       const mockFetchResponse = {
         ok: false,
-        status: 500
+        status: 500,
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -198,13 +200,15 @@ describe('Thread Messages Endpoint Tests', () => {
       const networkError = new Error('Network connection failed');
       fetchMock.mockRejectedValue(networkError);
 
-      await expect(checkpointMessages(mockContext, mockRequest)).rejects.toThrow('Network connection failed');
+      await expect(checkpointMessages(mockContext, mockRequest)).rejects.toThrow(
+        'Network connection failed'
+      );
     });
 
     it('should handle JSON parsing errors', async () => {
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockRejectedValue(new Error('Invalid JSON'))
+        json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -237,13 +241,13 @@ describe('Thread Messages Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-24T16:10:10.693427',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -267,13 +271,13 @@ describe('Thread Messages Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-24T16:10:10.693427',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -291,13 +295,13 @@ describe('Thread Messages Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-24T16:10:10.693427',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -314,13 +318,13 @@ describe('Thread Messages Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-24T16:10:10.693427',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 

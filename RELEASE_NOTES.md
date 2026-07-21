@@ -1,0 +1,94 @@
+# Release Notes
+
+Human-facing notes for the current release. For the full history see
+[CHANGELOG.md](CHANGELOG.md).
+
+---
+
+## Unreleased
+
+A production-readiness pass. No new features; it fixes packaging, security, and tooling
+defects that made the previous release unsafe to publish or depend on.
+
+### `npm publish` would have failed outright
+
+`@10xscale/agentflow-client` is a scoped package, and npm defaults scoped packages to
+`restricted` access. Without `publishConfig.access: "public"` in `package.json`, the
+publish is rejected by the registry. That field was missing, so the package could not have
+been published to the public registry at all. Added, together with `provenance: true`.
+
+### The build did not work on Windows
+
+`npm run build` ended with:
+
+```
+tsc && vite build && cp -r dist-types/* dist/
+```
+
+`cp` is not a Windows command, so any contributor on Windows could not build the package.
+The build now emits declarations straight into `dist/` through a dedicated
+`tsconfig.build.json`, and the copy step is gone entirely. There is also a subtle hazard
+this removes: `vite build` empties its `outDir` by default, so with the steps in the other
+order it would have deleted the declarations `tsc` had just written.
+
+### Shipped sourcemaps pointed at nothing
+
+The published tarball contained 41 `.map` files but no sources, so every sourcemap
+referenced files the consumer never received. Debugging into the library gave you nothing
+useful. `src/` is now included in the package, so the maps resolve.
+
+### The types forced `@types/node` on browser consumers
+
+`forgetMemories` annotated its timeout handle as `NodeJS.Timeout`. That namespace comes
+from `@types/node`, so consumers building for the browser had to install Node typings to
+compile against this package. Changed to `ReturnType<typeof setTimeout>`, which is
+portable. `Error.captureStackTrace` is now accessed structurally for the same reason.
+
+**Upgrade note:** if you added `@types/node` solely to satisfy this package, you can
+probably drop it.
+
+### 11 vulnerabilities cleared
+
+vitest 1.x and vite 5.x carried 11 advisories between them, 3 critical and 5 high.
+Upgraded to vitest 3 and vite 7. `npm audit` now reports zero vulnerabilities.
+
+### Dead code removed
+
+Three unexported, unreferenced things were being bundled into every published build:
+`makeSingleStreamCall` in `endpoints/stream.ts`, and `isRemoteToolCallChunk` plus
+`REMOTE_TOOL_CALL_REASON` in `endpoints/wsStream.ts`. Also removed `check.ts` (a scratch
+script importing from a path that does not exist) and `.npmignore` (dead configuration -
+`files` in `package.json` takes precedence, so it had no effect).
+
+None of these were exported, so nothing in your code can break.
+
+### Tests are now type-checked
+
+`tsconfig.json` covered only `src/`, so the test suite was never type-checked. Turning it
+on surfaced six genuine type errors, all fixed. Separately, converting the codebase's
+twelve `@ts-ignore` comments to `@ts-expect-error` proved that every one of them was
+suppressing nothing at all; all twelve are gone.
+
+### Tooling added
+
+- ESLint 9 and Prettier, with the 93 pre-existing errors fixed rather than suppressed.
+- CI on Node 18, 20, and 22, which verifies every declared entry point exists in the real
+  tarball and smoke-tests both the CJS and ESM entry points from a clean install.
+- Release workflow gated on CI with a tag-vs-version check, CodeQL, and Dependabot.
+- `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`, issue forms, and
+  a pull request template.
+
+### Coverage numbers moved
+
+Thresholds are now 72% lines/statements, 82% branches, 76% functions, pinned just under
+the measured values as a ratchet. These read lower than the previous config's 75/60/75/75
+claim, but nothing about the tests changed - vitest 3 remaps v8 coverage more accurately
+than vitest 1 did, so the older figure was simply optimistic.
+
+### Upgrading
+
+```bash
+npm install @10xscale/agentflow-client@latest
+```
+
+No code changes required.

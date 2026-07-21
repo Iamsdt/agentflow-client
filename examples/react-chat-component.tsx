@@ -1,13 +1,13 @@
 /**
  * Example: Simple React Chat Component
- * 
+ *
  * This example demonstrates:
  * 1. Setting up AgentFlowClient in React with Context
  * 2. Managing conversation state with useState
  * 3. Using invoke() for batch message processing
  * 4. Handling loading and error states
  * 5. Displaying chat messages with proper formatting
- * 
+ *
  * To use this component:
  * 1. Wrap your app with <AgentFlowProvider>
  * 2. Use <SimpleChat /> anywhere in your component tree
@@ -44,15 +44,11 @@ export function AgentFlowProvider({ baseUrl, authToken, children }: AgentFlowPro
     return new AgentFlowClient({
       baseUrl,
       authToken,
-      debug: true // Enable for development
+      debug: true, // Enable for development
     });
   }, [baseUrl, authToken]);
 
-  return (
-    <AgentFlowContext.Provider value={{ client }}>
-      {children}
-    </AgentFlowContext.Provider>
-  );
+  return <AgentFlowContext.Provider value={{ client }}>{children}</AgentFlowContext.Provider>;
 }
 
 /**
@@ -79,7 +75,7 @@ interface ChatMessage {
 
 export function SimpleChat() {
   const client = useAgentFlow();
-  
+
   // State management
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -96,11 +92,11 @@ export function SimpleChat() {
       id: `user-${Date.now()}`,
       role: 'user',
       content: input,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Add user message immediately
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setLoading(true);
     setError(null);
@@ -108,23 +104,23 @@ export function SimpleChat() {
     try {
       // Create Message objects for API
       const apiMessages = [
-        ...messages.map(m => 
-          m.role === 'user' 
-            ? Message.text_message(m.content, 'user') 
+        ...messages.map((m) =>
+          m.role === 'user'
+            ? Message.text_message(m.content, 'user')
             : Message.text_message(m.content, 'assistant')
         ),
-        Message.text_message(input, 'user')
+        Message.text_message(input, 'user'),
       ];
 
       // Invoke the agent
       const result: InvokeResult = await client.invoke({
         messages: apiMessages,
-        granularity: 'full'
+        granularity: 'full',
       });
 
       // Extract assistant response
       const assistantContent = result.messages
-        .map(m => {
+        .map((m) => {
           return m.content
             .filter((block: any) => block.type === 'text')
             .map((block: any) => block.text)
@@ -136,10 +132,10 @@ export function SimpleChat() {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
         content: assistantContent || 'No response',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Chat error:', err);
@@ -160,11 +156,7 @@ export function SimpleChat() {
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>AgentFlow Chat</h2>
-        <button 
-          onClick={handleClear} 
-          style={styles.clearButton}
-          disabled={messages.length === 0}
-        >
+        <button onClick={handleClear} style={styles.clearButton} disabled={messages.length === 0}>
           Clear
         </button>
       </div>
@@ -178,25 +170,25 @@ export function SimpleChat() {
           </div>
         )}
 
-        {messages.map(message => (
+        {messages.map((message) => (
           <div
             key={message.id}
             style={{
               ...styles.messageWrapper,
-              justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start'
+              justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
             }}
           >
             <div
               style={{
                 ...styles.message,
-                ...(message.role === 'user' ? styles.userMessage : styles.assistantMessage)
+                ...(message.role === 'user' ? styles.userMessage : styles.assistantMessage),
               }}
             >
               <div style={styles.messageContent}>{message.content}</div>
               <div style={styles.messageTime}>
-                {message.timestamp.toLocaleTimeString([], { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
+                {message.timestamp.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
                 })}
               </div>
             </div>
@@ -239,7 +231,7 @@ export function SimpleChat() {
           disabled={!input.trim() || loading}
           style={{
             ...styles.sendButton,
-            ...((!input.trim() || loading) && styles.sendButtonDisabled)
+            ...((!input.trim() || loading) && styles.sendButtonDisabled),
           }}
         >
           {loading ? '...' : 'Send'}
@@ -263,7 +255,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #e0e0e0',
     borderRadius: '8px',
     overflow: 'hidden',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
   },
   header: {
     display: 'flex',
@@ -271,13 +263,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     padding: '16px 20px',
     borderBottom: '1px solid #e0e0e0',
-    backgroundColor: '#f8f9fa'
+    backgroundColor: '#f8f9fa',
   },
   title: {
     margin: 0,
     fontSize: '20px',
     fontWeight: 600,
-    color: '#333'
+    color: '#333',
   },
   clearButton: {
     padding: '8px 16px',
@@ -287,70 +279,70 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '14px',
     color: '#666',
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
   },
   messagesContainer: {
     flex: 1,
     overflowY: 'auto',
     padding: '20px',
-    backgroundColor: '#fafafa'
+    backgroundColor: '#fafafa',
   },
   emptyState: {
     textAlign: 'center',
     marginTop: '100px',
-    color: '#999'
+    color: '#999',
   },
   emptyHint: {
     fontSize: '14px',
-    marginTop: '8px'
+    marginTop: '8px',
   },
   messageWrapper: {
     display: 'flex',
-    marginBottom: '12px'
+    marginBottom: '12px',
   },
   message: {
     maxWidth: '70%',
     padding: '12px 16px',
     borderRadius: '8px',
     fontSize: '14px',
-    lineHeight: '1.5'
+    lineHeight: '1.5',
   },
   userMessage: {
     backgroundColor: '#007bff',
-    color: '#ffffff'
+    color: '#ffffff',
   },
   assistantMessage: {
     backgroundColor: '#ffffff',
     color: '#333',
-    border: '1px solid #e0e0e0'
+    border: '1px solid #e0e0e0',
   },
   messageContent: {
-    marginBottom: '4px'
+    marginBottom: '4px',
   },
   messageTime: {
     fontSize: '11px',
     opacity: 0.7,
-    marginTop: '4px'
+    marginTop: '4px',
   },
   loadingDots: {
     display: 'flex',
     gap: '4px',
     fontSize: '18px',
-    animation: 'pulse 1.5s ease-in-out infinite'
+    animation: 'pulse 1.5s ease-in-out infinite',
   },
   error: {
     padding: '12px 20px',
     backgroundColor: '#fee',
     borderTop: '1px solid #fcc',
     color: '#c33',
-    fontSize: '14px'
+    fontSize: '14px',
   },
   inputContainer: {
     display: 'flex',
     gap: '8px',
     padding: '16px 20px',
     borderTop: '1px solid #e0e0e0',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
   },
   input: {
     flex: 1,
@@ -358,7 +350,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #ddd',
     borderRadius: '4px',
     fontSize: '14px',
-    outline: 'none'
+    outline: 'none',
   },
   sendButton: {
     padding: '12px 24px',
@@ -369,12 +361,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: 600,
-    transition: 'background-color 0.2s'
+    transition: 'background-color 0.2s',
   },
   sendButtonDisabled: {
     backgroundColor: '#ccc',
-    cursor: 'not-allowed'
-  }
+    cursor: 'not-allowed',
+  },
 };
 
 // ============================================
@@ -383,12 +375,12 @@ const styles: { [key: string]: React.CSSProperties } = {
 
 /**
  * Example usage in your app:
- * 
+ *
  * import { AgentFlowProvider, SimpleChat } from './examples/react-chat-component';
- * 
+ *
  * function App() {
  *   return (
- *     <AgentFlowProvider 
+ *     <AgentFlowProvider
  *       baseUrl="http://localhost:8000"
  *       authToken="your-token"
  *     >

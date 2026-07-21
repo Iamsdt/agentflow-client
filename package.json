@@ -17,19 +17,28 @@
   "sideEffects": false,
   "files": [
     "dist",
+    "src",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "tsc && vite build && cp -r dist-types/* dist/",
+    "build": "npm run clean && tsc -p tsconfig.build.json && vite build",
+    "clean": "rimraf dist",
     "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 253",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage",
     "coverage:open": "vitest run --coverage && xdg-open coverage/index.html",
-    "prepublishOnly": "npm run build && npm run test:run"
+    "check": "npm run lint && npm run typecheck && npm run test:run",
+    "prepublishOnly": "npm run check && npm run build"
   },
   "repository": {
     "type": "git",
@@ -41,12 +50,18 @@
   },
   "homepage": "https://github.com/10xHub/agentflow/tree/main/agentflow-client#readme",
   "devDependencies": {
-    "@vitest/coverage-v8": "^1.6.1",
-    "@vitest/ui": "^1.0.0",
+    "@eslint/js": "^9.13.0",
+    "@vitest/coverage-v8": "^3.2.7",
+    "@vitest/ui": "^3.2.7",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.0",
+    "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.0.0",
-    "vite": "^5.0.0",
-    "vitest": "^1.0.0"
+    "typescript-eslint": "^8.11.0",
+    "vite": "^7.3.6",
+    "vitest": "^3.2.7"
   },
   "keywords": [
     "agentflow",
@@ -63,9 +78,16 @@
     "typescript",
     "api-client"
   ],
-  "author": "Shudipto Trafder",
+  "author": "10xScale <contact@10xscale.ai>",
+  "contributors": [
+    "Shudipto Trafder <shudiptotrafder@gmail.com>"
+  ],
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

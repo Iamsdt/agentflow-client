@@ -1,14 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { threads } from '../src/endpoints/threads';
-import type {
-  ThreadsContext,
-  ThreadsRequest,
-  ThreadsResponse
-} from '../src/endpoints/threads';
+import type { ThreadsContext, ThreadsRequest, ThreadsResponse } from '../src/endpoints/threads';
 
 // Mock fetch globally
 const fetchMock = vi.fn();
-// @ts-ignore
 global.fetch = fetchMock;
 
 describe('Threads Endpoint Tests', () => {
@@ -19,7 +14,7 @@ describe('Threads Endpoint Tests', () => {
       baseUrl: 'http://localhost:8000',
       authToken: 'test-token',
       timeout: 5000,
-      debug: false
+      debug: false,
     };
 
     fetchMock.mockReset();
@@ -41,20 +36,20 @@ describe('Threads Endpoint Tests', () => {
               user_id: 'user-123',
               metadata: { key: 'value' },
               updated_at: '2025-10-26T01:38:12.094988',
-              run_id: 'run-456'
-            }
-          ]
+              run_id: 'run-456',
+            },
+          ],
         },
         metadata: {
           request_id: '76794838-1a00-4a0b-8a7e-d2247b1cccef',
           timestamp: '2025-10-26T01:38:12.094988',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -68,7 +63,7 @@ describe('Threads Endpoint Tests', () => {
     it('should call correct URL with no query parameters', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -86,7 +81,7 @@ describe('Threads Endpoint Tests', () => {
     it('should include search parameter in URL', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -101,7 +96,7 @@ describe('Threads Endpoint Tests', () => {
     it('should include offset and limit parameters in URL', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -116,7 +111,7 @@ describe('Threads Endpoint Tests', () => {
     it('should include all query parameters when provided', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -132,7 +127,7 @@ describe('Threads Endpoint Tests', () => {
       const ctx: ThreadsContext = { ...mockContext, authToken: null };
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -146,7 +141,7 @@ describe('Threads Endpoint Tests', () => {
     it('should handle empty threads array', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -166,7 +161,7 @@ describe('Threads Endpoint Tests', () => {
               user_id: 'user-1',
               metadata: null,
               updated_at: null,
-              run_id: null
+              run_id: null,
             },
             {
               thread_id: '2',
@@ -174,11 +169,11 @@ describe('Threads Endpoint Tests', () => {
               user_id: 'user-2',
               metadata: { custom: 'data' },
               updated_at: '2025-10-26T01:38:12.094988',
-              run_id: 'run-2'
-            }
-          ]
+              run_id: 'run-2',
+            },
+          ],
         },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -200,11 +195,11 @@ describe('Threads Endpoint Tests', () => {
               user_id: null,
               metadata: null,
               updated_at: null,
-              run_id: null
-            }
-          ]
+              run_id: null,
+            },
+          ],
         },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -245,9 +240,10 @@ describe('Threads Endpoint Tests', () => {
     it('should timeout when request takes too long', async () => {
       const slowContext = { ...mockContext, timeout: 50 };
       fetchMock.mockImplementation(
-        () => new Promise((_, reject) => {
-          setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
-        })
+        () =>
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
+          })
       );
       await expect(threads(slowContext)).rejects.toThrow('Request timeout after 50ms');
     });
@@ -270,10 +266,21 @@ describe('Threads Endpoint Tests', () => {
       const debugContext = { ...mockContext, debug: true };
       const consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
       const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-      
+
       const mockResponse: ThreadsResponse = {
-        data: { threads: [{ thread_id: '1', thread_name: 'Test', user_id: null, metadata: null, updated_at: null, run_id: null }] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        data: {
+          threads: [
+            {
+              thread_id: '1',
+              thread_name: 'Test',
+              user_id: null,
+              metadata: null,
+              updated_at: null,
+              run_id: null,
+            },
+          ],
+        },
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -294,10 +301,10 @@ describe('Threads Endpoint Tests', () => {
     it('should not log debug messages when debug is false', async () => {
       const consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
       const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-      
+
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -328,11 +335,12 @@ describe('Threads Endpoint Tests', () => {
     it('should log timeout warning', async () => {
       const slowContext = { ...mockContext, timeout: 50 };
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       fetchMock.mockImplementation(
-        () => new Promise((_, reject) => {
-          setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
-        })
+        () =>
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
+          })
       );
 
       await expect(threads(slowContext)).rejects.toThrow();
@@ -349,7 +357,7 @@ describe('Threads Endpoint Tests', () => {
     it('should clear timeout on successful response', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -365,7 +373,7 @@ describe('Threads Endpoint Tests', () => {
     it('should pass abort signal to fetch', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -381,7 +389,7 @@ describe('Threads Endpoint Tests', () => {
     it('should handle special characters in search parameter', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -396,7 +404,7 @@ describe('Threads Endpoint Tests', () => {
     it('should handle offset of 0', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -411,7 +419,7 @@ describe('Threads Endpoint Tests', () => {
     it('should not include undefined parameters', async () => {
       const mockResponse: ThreadsResponse = {
         data: { threads: [] },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'OK' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);

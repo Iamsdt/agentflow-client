@@ -1,22 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  WS_BEARER_SUBPROTOCOL,
-  resolveBearerToken,
-  buildWsUrl,
-  openWebSocket,
-} from '../src/ws.js';
+import { WS_BEARER_SUBPROTOCOL, resolveBearerToken, buildWsUrl, openWebSocket } from '../src/ws.js';
 
 describe('resolveBearerToken', () => {
   it('prefers authToken', () => {
-    expect(resolveBearerToken({ baseUrl: 'x', authToken: 'tok' })).toBe('tok');
+    expect(resolveBearerToken({ authToken: 'tok' })).toBe('tok');
   });
   it('falls back to bearer auth', () => {
-    expect(
-      resolveBearerToken({ baseUrl: 'x', auth: { type: 'bearer', token: 'b' } })
-    ).toBe('b');
+    expect(resolveBearerToken({ auth: { type: 'bearer', token: 'b' } })).toBe('b');
   });
   it('returns null when no token', () => {
-    expect(resolveBearerToken({ baseUrl: 'x' })).toBeNull();
+    expect(resolveBearerToken({})).toBeNull();
   });
 });
 
@@ -32,7 +25,7 @@ describe('buildWsUrl', () => {
     );
   });
   it('never leaks the token into the URL', () => {
-    const url = buildWsUrl({ baseUrl: 'http://h', authToken: 'secret' }, '/v1/graph/ws');
+    const url = buildWsUrl({ baseUrl: 'http://h' }, '/v1/graph/ws');
     expect(url).not.toContain('secret');
     expect(url).not.toContain('token=');
   });
@@ -42,7 +35,11 @@ describe('openWebSocket', () => {
   let calls: any[];
   class FakeWS {
     static OPEN = 1;
-    constructor(public url: string, public protocols?: any, public options?: any) {
+    constructor(
+      public url: string,
+      public protocols?: any,
+      public options?: any
+    ) {
       calls.push({ url, protocols, options });
     }
   }
@@ -71,11 +68,14 @@ describe('openWebSocket', () => {
   });
 
   it('uses the injected impl over the global', () => {
-    vi.stubGlobal('WebSocket', class {
-      constructor() {
-        throw new Error('global should not be used');
+    vi.stubGlobal(
+      'WebSocket',
+      class {
+        constructor() {
+          throw new Error('global should not be used');
+        }
       }
-    });
+    );
     const ws = openWebSocket('ws://h', {
       baseUrl: 'http://h',
       webSocketImpl: FakeWS as any,
@@ -85,8 +85,8 @@ describe('openWebSocket', () => {
 
   it('throws a helpful error when no impl is available', () => {
     vi.stubGlobal('WebSocket', undefined);
-    expect(() =>
-      openWebSocket('ws://h', { baseUrl: 'http://h' })
-    ).toThrow(/No WebSocket implementation/);
+    expect(() => openWebSocket('ws://h', { baseUrl: 'http://h' })).toThrow(
+      /No WebSocket implementation/
+    );
   });
 });

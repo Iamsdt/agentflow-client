@@ -1,13 +1,13 @@
 /**
  * Example: Dynamic Form Builder from State Schema
- * 
+ *
  * This example demonstrates:
  * 1. Fetching agent state schema with graphStateSchema()
  * 2. Parsing field definitions and types
  * 3. Building dynamic form fields based on schema
  * 4. Validating form data against schema
  * 5. Submitting state to the agent
- * 
+ *
  * To use this component:
  * 1. Wrap your app with <AgentFlowProvider>
  * 2. Use <DynamicFormBuilder /> to generate forms from your agent's schema
@@ -17,12 +17,12 @@
 'use client'; // For Next.js App Router
 
 import React, { useState, useEffect, useMemo, createContext, useContext, ReactNode } from 'react';
-import { 
-  AgentFlowClient, 
-  StateSchemaResponse, 
+import {
+  AgentFlowClient,
+  StateSchemaResponse,
   FieldSchema,
   InvokeResult,
-  Message
+  Message,
 } from '@10xscale/agentflow-client';
 
 // ============================================
@@ -46,15 +46,11 @@ export function AgentFlowProvider({ baseUrl, authToken, children }: AgentFlowPro
     return new AgentFlowClient({
       baseUrl,
       authToken,
-      debug: true
+      debug: true,
     });
   }, [baseUrl, authToken]);
 
-  return (
-    <AgentFlowContext.Provider value={{ client }}>
-      {children}
-    </AgentFlowContext.Provider>
-  );
+  return <AgentFlowContext.Provider value={{ client }}>{children}</AgentFlowContext.Provider>;
 }
 
 function useAgentFlow() {
@@ -76,7 +72,7 @@ interface FormField {
 
 export function DynamicFormBuilder() {
   const client = useAgentFlow();
-  
+
   // State management
   const [fields, setFields] = useState<FormField[]>([]);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -98,12 +94,12 @@ export function DynamicFormBuilder() {
 
     try {
       const response: StateSchemaResponse = await client.graphStateSchema();
-      
+
       // Convert schema fields to array
       const fieldArray: FormField[] = Object.entries(response.data.fields).map(
         ([name, schema]) => ({
           name,
-          schema: schema as FieldSchema
+          schema: schema as FieldSchema,
         })
       );
 
@@ -111,7 +107,7 @@ export function DynamicFormBuilder() {
 
       // Initialize form data with defaults
       const initialData: Record<string, any> = {};
-      fieldArray.forEach(field => {
+      fieldArray.forEach((field) => {
         if (field.schema.default !== undefined) {
           initialData[field.name] = field.schema.default;
         }
@@ -129,9 +125,9 @@ export function DynamicFormBuilder() {
    * Handle field value change
    */
   const handleChange = (fieldName: string, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [fieldName]: value
+      [fieldName]: value,
     }));
   };
 
@@ -141,30 +137,30 @@ export function DynamicFormBuilder() {
   const validateForm = (): string | null => {
     for (const field of fields) {
       const value = formData[field.name];
-      
+
       // Check required fields
       if (field.schema.required && (value === undefined || value === null || value === '')) {
         return `${field.name} is required`;
       }
-      
+
       // Type validation
       if (value !== undefined && value !== null && value !== '') {
         const type = field.schema.type;
-        
+
         if (type === 'number' && isNaN(Number(value))) {
           return `${field.name} must be a number`;
         }
-        
+
         if (type === 'boolean' && typeof value !== 'boolean') {
           return `${field.name} must be true or false`;
         }
-        
+
         if (type === 'array' && !Array.isArray(value)) {
           return `${field.name} must be an array`;
         }
       }
     }
-    
+
     return null;
   };
 
@@ -173,14 +169,14 @@ export function DynamicFormBuilder() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
       return;
     }
-    
+
     setSubmitting(true);
     setError(null);
     setResult(null);
@@ -189,12 +185,15 @@ export function DynamicFormBuilder() {
       // Send form data to agent
       const response: InvokeResult = await client.invoke({
         messages: [
-          Message.text_message(`Process this form data: ${JSON.stringify(formData, null, 2)}`, 'user')
+          Message.text_message(
+            `Process this form data: ${JSON.stringify(formData, null, 2)}`,
+            'user'
+          ),
         ],
         config: {
-          initial_state: formData
+          initial_state: formData,
         },
-        granularity: 'full'
+        granularity: 'full',
       });
 
       // Extract response
@@ -332,8 +331,7 @@ export function DynamicFormBuilder() {
         return (
           <div key={name} style={styles.field}>
             <label style={styles.label}>
-              {label} ({schema.type})
-              {schema.required && <span style={styles.required}> *</span>}
+              {label} ({schema.type}){schema.required && <span style={styles.required}> *</span>}
             </label>
             <input
               type="text"
@@ -389,7 +387,7 @@ export function DynamicFormBuilder() {
               <p style={styles.emptyHint}>Check your agent's state schema configuration</p>
             </div>
           ) : (
-            fields.map(field => renderField(field))
+            fields.map((field) => renderField(field))
           )}
         </div>
 
@@ -410,7 +408,7 @@ export function DynamicFormBuilder() {
             type="submit"
             style={{
               ...styles.submitButton,
-              ...(submitting && styles.submitButtonDisabled)
+              ...(submitting && styles.submitButtonDisabled),
             }}
             disabled={submitting || fields.length === 0}
           >
@@ -421,9 +419,7 @@ export function DynamicFormBuilder() {
 
       <div style={styles.preview}>
         <h3 style={styles.previewTitle}>Form Data Preview</h3>
-        <pre style={styles.previewContent}>
-          {JSON.stringify(formData, null, 2)}
-        </pre>
+        <pre style={styles.previewContent}>{JSON.stringify(formData, null, 2)}</pre>
       </div>
     </div>
   );
@@ -437,7 +433,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   container: {
     maxWidth: '800px',
     margin: '0 auto',
-    padding: '20px'
+    padding: '20px',
   },
   header: {
     display: 'flex',
@@ -445,13 +441,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     marginBottom: '24px',
     paddingBottom: '16px',
-    borderBottom: '2px solid #e0e0e0'
+    borderBottom: '2px solid #e0e0e0',
   },
   title: {
     margin: 0,
     fontSize: '24px',
     fontWeight: 600,
-    color: '#333'
+    color: '#333',
   },
   refreshButton: {
     padding: '8px 16px',
@@ -460,12 +456,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '14px',
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
   },
   loading: {
     textAlign: 'center',
     padding: '60px 20px',
-    color: '#666'
+    color: '#666',
   },
   spinner: {
     width: '40px',
@@ -474,7 +470,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '4px solid #f3f3f3',
     borderTop: '4px solid #007bff',
     borderRadius: '50%',
-    animation: 'spin 1s linear infinite'
+    animation: 'spin 1s linear infinite',
   },
   error: {
     padding: '12px 16px',
@@ -483,7 +479,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #fcc',
     borderRadius: '4px',
     color: '#c33',
-    fontSize: '14px'
+    fontSize: '14px',
   },
   success: {
     padding: '12px 16px',
@@ -492,7 +488,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #cfc',
     borderRadius: '4px',
     color: '#363',
-    fontSize: '14px'
+    fontSize: '14px',
   },
   resultContent: {
     marginTop: '8px',
@@ -502,40 +498,40 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '4px',
     fontSize: '12px',
     overflow: 'auto',
-    maxHeight: '200px'
+    maxHeight: '200px',
   },
   form: {
     backgroundColor: '#ffffff',
     border: '1px solid #e0e0e0',
     borderRadius: '8px',
     padding: '24px',
-    marginBottom: '24px'
+    marginBottom: '24px',
   },
   fieldsContainer: {
-    marginBottom: '24px'
+    marginBottom: '24px',
   },
   emptyState: {
     textAlign: 'center',
     padding: '40px 20px',
-    color: '#999'
+    color: '#999',
   },
   emptyHint: {
     fontSize: '14px',
-    marginTop: '8px'
+    marginTop: '8px',
   },
   field: {
-    marginBottom: '20px'
+    marginBottom: '20px',
   },
   label: {
     display: 'block',
     marginBottom: '8px',
     fontSize: '14px',
     fontWeight: 500,
-    color: '#333'
+    color: '#333',
   },
   required: {
     color: '#e03',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   input: {
     width: '100%',
@@ -544,7 +540,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '4px',
     fontSize: '14px',
     outline: 'none',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
   },
   select: {
     width: '100%',
@@ -554,25 +550,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '14px',
     outline: 'none',
     backgroundColor: '#ffffff',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
   },
   checkboxLabel: {
     display: 'flex',
     alignItems: 'center',
     fontSize: '14px',
     color: '#333',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   checkbox: {
     marginRight: '8px',
     width: '18px',
     height: '18px',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   actions: {
     display: 'flex',
     gap: '12px',
-    justifyContent: 'flex-end'
+    justifyContent: 'flex-end',
   },
   resetButton: {
     padding: '12px 24px',
@@ -583,7 +579,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: 500,
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
   },
   submitButton: {
     padding: '12px 32px',
@@ -594,23 +590,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: 600,
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
   },
   submitButtonDisabled: {
     backgroundColor: '#ccc',
-    cursor: 'not-allowed'
+    cursor: 'not-allowed',
   },
   preview: {
     backgroundColor: '#f8f9fa',
     border: '1px solid #e0e0e0',
     borderRadius: '8px',
-    padding: '16px'
+    padding: '16px',
   },
   previewTitle: {
     margin: '0 0 12px 0',
     fontSize: '16px',
     fontWeight: 600,
-    color: '#333'
+    color: '#333',
   },
   previewContent: {
     margin: 0,
@@ -621,8 +617,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '12px',
     fontFamily: 'monospace',
     overflow: 'auto',
-    maxHeight: '300px'
-  }
+    maxHeight: '300px',
+  },
 };
 
 // ============================================
@@ -631,12 +627,12 @@ const styles: { [key: string]: React.CSSProperties } = {
 
 /**
  * Example usage in your app:
- * 
+ *
  * import { AgentFlowProvider, DynamicFormBuilder } from './examples/react-form-builder';
- * 
+ *
  * function App() {
  *   return (
- *     <AgentFlowProvider 
+ *     <AgentFlowProvider
  *       baseUrl="http://localhost:8000"
  *       authToken="your-token"
  *     >

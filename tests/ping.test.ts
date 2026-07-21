@@ -14,7 +14,7 @@ describe('Ping Endpoint Tests', () => {
       baseUrl: 'http://localhost:8000',
       authToken: 'test-token',
       timeout: 5000,
-      debug: false
+      debug: false,
     };
 
     // Reset mocks
@@ -33,14 +33,14 @@ describe('Ping Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       // Mock successful fetch response
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -51,9 +51,9 @@ describe('Ping Endpoint Tests', () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer test-token'
+          Authorization: 'Bearer test-token',
         },
-        signal: expect.any(AbortSignal)
+        signal: expect.any(AbortSignal),
       });
     });
 
@@ -65,13 +65,13 @@ describe('Ping Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -81,9 +81,9 @@ describe('Ping Endpoint Tests', () => {
       expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/ping', {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        signal: expect.any(AbortSignal)
+        signal: expect.any(AbortSignal),
       });
     });
 
@@ -95,13 +95,13 @@ describe('Ping Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -111,9 +111,9 @@ describe('Ping Endpoint Tests', () => {
       expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/ping', {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        signal: expect.any(AbortSignal)
+        signal: expect.any(AbortSignal),
       });
     });
   });
@@ -122,7 +122,7 @@ describe('Ping Endpoint Tests', () => {
     it('should throw error for non-2xx HTTP status', async () => {
       const mockFetchResponse = {
         ok: false,
-        status: 500
+        status: 500,
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -148,7 +148,7 @@ describe('Ping Endpoint Tests', () => {
     it('should handle JSON parsing errors', async () => {
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockRejectedValue(new Error('Invalid JSON'))
+        json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -184,19 +184,22 @@ describe('Ping Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
       await ping(debugContext);
 
-      expect(consoleDebugSpy).toHaveBeenCalledWith('AgentFlowClient: Pinging server at', 'http://localhost:8000');
+      expect(consoleDebugSpy).toHaveBeenCalledWith(
+        'AgentFlowClient: Pinging server at',
+        'http://localhost:8000'
+      );
       expect(consoleInfoSpy).toHaveBeenCalledWith('AgentFlowClient: Ping successful', mockResponse);
     });
 
@@ -205,7 +208,7 @@ describe('Ping Endpoint Tests', () => {
 
       const mockFetchResponse = {
         ok: false,
-        status: 404
+        status: 404,
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -232,13 +235,13 @@ describe('Ping Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -256,13 +259,13 @@ describe('Ping Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -283,7 +286,7 @@ describe('Ping Endpoint Tests', () => {
       const contextWithoutTimeout: Omit<PingContext, 'timeout'> & { timeout?: number } = {
         baseUrl: 'http://localhost:8000',
         authToken: 'test-token',
-        debug: false
+        debug: false,
       };
 
       const mockResponse: PingResponse = {
@@ -291,13 +294,13 @@ describe('Ping Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -315,13 +318,13 @@ describe('Ping Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 

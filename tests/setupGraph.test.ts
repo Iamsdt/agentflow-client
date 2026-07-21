@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { AgentFlowClient } from '../src/index';
-import type { SetupGraphResponse, RemoteTool } from '../src/index';
+import type { SetupGraphResponse } from '../src/index';
 
 describe('Setup Graph API Tests', () => {
   const client = new AgentFlowClient({
     baseUrl: 'http://localhost:8000',
-    debug: true
+    debug: true,
   });
 
   describe('setup method', () => {
@@ -18,13 +18,13 @@ describe('Setup Graph API Tests', () => {
     it('should call setup with no registered tools', async () => {
       try {
         const result: SetupGraphResponse = await client.setup();
-        
+
         // If server is running, we expect a response
         expect(result).toBeDefined();
         expect(result.data).toBeDefined();
         expect(result.data.success).toBeDefined();
         expect(result.metadata).toBeDefined();
-        
+
         console.log('Setup with no tools successful:', result.data);
       } catch (error) {
         // Expected - server not running
@@ -44,28 +44,28 @@ describe('Setup Graph API Tests', () => {
           properties: {
             query: {
               type: 'string',
-              description: 'Test query parameter'
-            }
+              description: 'Test query parameter',
+            },
           },
-          required: ['query']
+          required: ['query'],
         },
-        handler: async (args: any) => {
+        handler: async (_args: any) => {
           return { result: 'test' };
-        }
+        },
       });
 
       try {
         const result: SetupGraphResponse = await client.setup();
-        
+
         expect(result).toBeDefined();
         expect(result.data.success).toBeDefined();
-        
+
         // Should indicate tools were registered
         if (result.data.registered_tools !== undefined) {
           expect(result.data.registered_tools).toBeGreaterThan(0);
           console.log('Tools registered:', result.data.registered_tools);
         }
-        
+
         console.log('Setup with tools successful:', result.data);
       } catch (error) {
         expect(error).toBeDefined();
@@ -76,7 +76,7 @@ describe('Setup Graph API Tests', () => {
     it('should setup with multiple tools', async () => {
       const toolClient = new AgentFlowClient({
         baseUrl: 'http://localhost:8000',
-        debug: true
+        debug: true,
       });
 
       // Register multiple tools
@@ -87,11 +87,11 @@ describe('Setup Graph API Tests', () => {
         parameters: {
           type: 'object',
           properties: {
-            param1: { type: 'string' }
+            param1: { type: 'string' },
           },
-          required: []
+          required: [],
         },
-        handler: async (args: any) => ({ result: 'one' })
+        handler: async (_args: any) => ({ result: 'one' }),
       });
 
       toolClient.registerTool({
@@ -101,19 +101,19 @@ describe('Setup Graph API Tests', () => {
         parameters: {
           type: 'object',
           properties: {
-            param2: { type: 'number' }
+            param2: { type: 'number' },
           },
-          required: []
+          required: [],
         },
-        handler: async (args: any) => ({ result: 'two' })
+        handler: async (_args: any) => ({ result: 'two' }),
       });
 
       try {
         const result: SetupGraphResponse = await toolClient.setup();
-        
+
         expect(result).toBeDefined();
         expect(result.data.success).toBeDefined();
-        
+
         if (result.data.registered_tools !== undefined) {
           expect(result.data.registered_tools).toBe(2);
           console.log('Multiple tools registered:', result.data.registered_tools);
@@ -126,17 +126,17 @@ describe('Setup Graph API Tests', () => {
     it('should validate response structure', async () => {
       try {
         const result: SetupGraphResponse = await client.setup();
-        
+
         // Verify response structure
         expect(result.data).toBeDefined();
         expect(typeof result.data.success).toBe('boolean');
         expect(typeof result.data.message).toBe('string');
-        
+
         expect(result.metadata).toBeDefined();
         expect(result.metadata.request_id).toBeDefined();
         expect(result.metadata.timestamp).toBeDefined();
         expect(result.metadata.message).toBeDefined();
-        
+
         console.log('Response structure validated');
       } catch (error) {
         console.log('Expected error (validation will be done when server is available)');
@@ -148,7 +148,7 @@ describe('Setup Graph API Tests', () => {
     it('should convert tool registrations to RemoteTool format', async () => {
       const flowClient = new AgentFlowClient({
         baseUrl: 'http://localhost:8000',
-        debug: true
+        debug: true,
       });
 
       // Register a tool with complete definition
@@ -162,23 +162,23 @@ describe('Setup Graph API Tests', () => {
             operation: {
               type: 'string',
               enum: ['add', 'subtract', 'multiply', 'divide'],
-              description: 'Math operation to perform'
+              description: 'Math operation to perform',
             },
             a: {
               type: 'number',
-              description: 'First operand'
+              description: 'First operand',
             },
             b: {
               type: 'number',
-              description: 'Second operand'
-            }
+              description: 'Second operand',
+            },
           },
-          required: ['operation', 'a', 'b']
+          required: ['operation', 'a', 'b'],
         },
-        handler: async (args: any) => {
+        handler: async (_args: any) => {
           // Implementation doesn't matter for setup
           return { result: 0 };
-        }
+        },
       });
 
       try {
@@ -193,7 +193,7 @@ describe('Setup Graph API Tests', () => {
     it('should handle tools with complex parameters', async () => {
       const complexClient = new AgentFlowClient({
         baseUrl: 'http://localhost:8000',
-        debug: true
+        debug: true,
       });
 
       complexClient.registerTool({
@@ -208,14 +208,14 @@ describe('Setup Graph API Tests', () => {
               properties: {
                 nested: {
                   type: 'array',
-                  items: { type: 'string' }
-                }
-              }
-            }
+                  items: { type: 'string' },
+                },
+              },
+            },
           },
-          required: []
+          required: [],
         },
-        handler: async (args: any) => ({ result: 'complex' })
+        handler: async (_args: any) => ({ result: 'complex' }),
       });
 
       try {
@@ -232,7 +232,7 @@ describe('Setup Graph API Tests', () => {
     it('should handle setup without registerTool', async () => {
       const emptyClient = new AgentFlowClient({
         baseUrl: 'http://localhost:8000',
-        debug: true
+        debug: true,
       });
 
       try {
@@ -248,7 +248,7 @@ describe('Setup Graph API Tests', () => {
       const badClient = new AgentFlowClient({
         baseUrl: 'http://invalid-host:9999',
         timeout: 1000,
-        debug: true
+        debug: true,
       });
 
       try {
@@ -266,7 +266,7 @@ describe('Setup Graph API Tests', () => {
       const shortTimeoutClient = new AgentFlowClient({
         baseUrl: 'http://localhost:8000',
         timeout: 100,
-        debug: true
+        debug: true,
       });
 
       try {
@@ -280,7 +280,7 @@ describe('Setup Graph API Tests', () => {
       const authClient = new AgentFlowClient({
         baseUrl: 'http://localhost:8000',
         authToken: 'test-bearer-token',
-        debug: true
+        debug: true,
       });
 
       try {

@@ -18,10 +18,7 @@ export interface AgentFlowHeaderAuth {
   prefix?: string | null;
 }
 
-export type AgentFlowAuth =
-  | AgentFlowBearerAuth
-  | AgentFlowBasicAuth
-  | AgentFlowHeaderAuth;
+export type AgentFlowAuth = AgentFlowBearerAuth | AgentFlowBasicAuth | AgentFlowHeaderAuth;
 
 export interface RequestContext {
   baseUrl: string;
@@ -52,10 +49,7 @@ function setHeader(
   target[name] = value;
 }
 
-function mergeHeaders(
-  target: Record<string, string>,
-  source?: HeadersInit | null
-): void {
+function mergeHeaders(target: Record<string, string>, source?: HeadersInit | null): void {
   if (!source) {
     return;
   }
@@ -88,7 +82,11 @@ function hasHeader(target: Record<string, string>, name: string): boolean {
 }
 
 function encodeBase64(value: string): string {
-  const bufferConstructor = (globalThis as { Buffer?: { from(input: string, encoding: string): { toString(encoding: string): string } } }).Buffer;
+  const bufferConstructor = (
+    globalThis as {
+      Buffer?: { from(input: string, encoding: string): { toString(encoding: string): string } };
+    }
+  ).Buffer;
   if (bufferConstructor) {
     return bufferConstructor.from(value, 'utf-8').toString('base64');
   }
@@ -105,10 +103,7 @@ function encodeBase64(value: string): string {
   throw new Error('Basic authentication is not supported in this runtime');
 }
 
-function applyAuth(
-  target: Record<string, string>,
-  auth?: AgentFlowAuth | null
-): void {
+function applyAuth(target: Record<string, string>, auth?: AgentFlowAuth | null): void {
   if (!auth) {
     return;
   }
@@ -160,10 +155,7 @@ export function bearerAuth(token: string): AgentFlowBearerAuth {
   return { type: 'bearer', token };
 }
 
-export function basicAuth(
-  username: string,
-  password: string
-): AgentFlowBasicAuth {
+export function basicAuth(username: string, password: string): AgentFlowBasicAuth {
   return { type: 'basic', username, password };
 }
 

@@ -45,10 +45,7 @@ export function resolveBearerToken(
  * The token is never placed in the URL — it travels via the `agentflow-bearer`
  * subprotocol (browser-safe) and, in Node, the Authorization header.
  */
-export function buildWsUrl(
-  context: Pick<WsAuthContext, 'baseUrl'>,
-  path: string
-): string {
+export function buildWsUrl(context: Pick<WsAuthContext, 'baseUrl'>, path: string): string {
   return (
     context.baseUrl
       .replace(/^https:/, 'wss:')
@@ -69,13 +66,12 @@ export function buildWsUrl(
  */
 export function openWebSocket(url: string, context: WsAuthContext): WebSocket {
   const Impl: WebSocketImpl | undefined =
-    context.webSocketImpl ??
-    (globalThis as { WebSocket?: WebSocketImpl }).WebSocket;
+    context.webSocketImpl ?? (globalThis as { WebSocket?: WebSocketImpl }).WebSocket;
 
   if (!Impl) {
     throw new Error(
       'No WebSocket implementation available. In Node < 21 pass `webSocketImpl` ' +
-        "in the client config (e.g. the `ws` package: `new AgentFlowClient({ ..., webSocketImpl: WebSocket })`)."
+        'in the client config (e.g. the `ws` package: `new AgentFlowClient({ ..., webSocketImpl: WebSocket })`).'
     );
   }
 

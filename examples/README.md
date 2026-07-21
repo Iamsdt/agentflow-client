@@ -7,7 +7,9 @@ This directory contains complete, runnable examples demonstrating how to use the
 ### Core API Examples
 
 #### 1. [invoke-example.ts](./invoke-example.ts)
+
 **What it demonstrates:**
+
 - Basic client setup and configuration
 - Tool registration (weather and calculator)
 - Automatic tool execution loop with `invoke()`
@@ -17,11 +19,13 @@ This directory contains complete, runnable examples demonstrating how to use the
 **⚠️ Important Note:** This example demonstrates remote tool registration for learning purposes. In production, define most tools in your Python backend. Remote tools should **only** be used for browser-level APIs. See [Tools Guide](../docs/tools-guide.md#remote-tools-vs-backend-tools).
 
 **Best for:**
+
 - Understanding the invoke API
 - Learning tool registration patterns
 - Batch processing use cases
 
 **Run:**
+
 ```bash
 npx ts-node examples/invoke-example.ts
 ```
@@ -29,7 +33,9 @@ npx ts-node examples/invoke-example.ts
 ---
 
 #### 2. [stream-example.ts](./stream-example.ts)
+
 **What it demonstrates:**
+
 - Real-time streaming with `stream()`
 - Processing different stream event types
 - Handling progressive content updates
@@ -37,12 +43,14 @@ npx ts-node examples/invoke-example.ts
 - Building responsive UIs with streaming
 
 **Best for:**
+
 - Chat interfaces
 - Real-time agent responses
 - Progress indicators
 - Streaming content generation
 
 **Run:**
+
 ```bash
 npx ts-node examples/stream-example.ts
 ```
@@ -50,7 +58,9 @@ npx ts-node examples/stream-example.ts
 ---
 
 #### 3. [state-schema-examples.ts](./state-schema-examples.ts)
+
 **What it demonstrates:**
+
 - Fetching agent state schema
 - Understanding field types and properties
 - Building dynamic forms from schema
@@ -58,12 +68,14 @@ npx ts-node examples/stream-example.ts
 - Working with complex field types (arrays, objects)
 
 **Best for:**
+
 - Dynamic UI generation
 - Form builders
 - State validation
 - Understanding agent capabilities
 
 **Run:**
+
 ```bash
 npx ts-node examples/state-schema-examples.ts
 ```
@@ -136,14 +148,16 @@ import { AgentFlowClient, Message } from '@10xscale/agentflow-client';
 const client = new AgentFlowClient({
   baseUrl: 'http://localhost:8000',
   authToken: null,
-  debug: true
+  debug: true,
 });
 
 // 3. Register tools (if needed)
 client.registerTool({
   node: 'assistant',
   name: 'my_tool',
-  handler: async (args) => { /* ... */ }
+  handler: async (args) => {
+    /* ... */
+  },
 });
 
 // 4. Main function
@@ -166,13 +180,13 @@ Update `baseUrl` in examples to match your API server:
 ```typescript
 // Local development
 const client = new AgentFlowClient({
-  baseUrl: 'http://localhost:8000'
+  baseUrl: 'http://localhost:8000',
 });
 
 // Production
 const client = new AgentFlowClient({
   baseUrl: 'https://api.agentflow.example.com',
-  authToken: process.env.AGENTFLOW_API_TOKEN
+  authToken: process.env.AGENTFLOW_API_TOKEN,
 });
 ```
 
@@ -183,7 +197,7 @@ Enable debug mode to see detailed logs:
 ```typescript
 const client = new AgentFlowClient({
   baseUrl: 'http://localhost:8000',
-  debug: true  // 🔍 Shows requests, responses, tool execution
+  debug: true, // 🔍 Shows requests, responses, tool execution
 });
 ```
 
@@ -213,6 +227,7 @@ For more information:
 **Problem:** Can't connect to API server.
 
 **Solution:**
+
 1. Ensure API server is running: `curl http://localhost:8000/v1/ping`
 2. Check `baseUrl` matches server address
 3. Verify firewall/network settings
@@ -222,6 +237,7 @@ For more information:
 **Problem:** Tool execution fails with "not found".
 
 **Solution:**
+
 1. Register tools **before** calling `invoke()` or `stream()`
 2. Verify tool `name` matches exactly
 3. Check `node` name matches your agent graph
@@ -231,6 +247,7 @@ For more information:
 **Problem:** Type errors when running examples.
 
 **Solution:**
+
 1. Ensure TypeScript is installed: `npm install -g typescript`
 2. Check `tsconfig.json` is present
 3. Install type definitions: `npm install`
@@ -240,6 +257,7 @@ For more information:
 **Problem:** Tool loop hits max iterations.
 
 **Solution:**
+
 1. Increase `recursion_limit` in invoke request
 2. Check tool handlers return clear, actionable results
 3. Use `on_progress` callback to monitor iterations

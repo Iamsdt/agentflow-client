@@ -9,7 +9,7 @@ import { StreamChunk, StreamEventType, StreamRequest, serializeMessage } from '.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface WsStreamContext extends RequestContext {
-    toolExecutor?: ToolExecutor;
+  toolExecutor?: ToolExecutor;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,36 +17,24 @@ export interface WsStreamContext extends RequestContext {
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface WsGraphInput {
-    invoke_type: 'fresh' | 'resume';
-    messages?: any[];
-    tool_result?: any[];
-    initial_state?: Record<string, any>;
-    config?: Record<string, any>;
-    recursion_limit?: number;
-    response_granularity?: string;
+  invoke_type: 'fresh' | 'resume';
+  messages?: any[];
+  tool_result?: any[];
+  initial_state?: Record<string, any>;
+  config?: Record<string, any>;
+  recursion_limit?: number;
+  response_granularity?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const REMOTE_TOOL_CALL_REASON = 'Remote tool call - graph interrupted';
-
-/** True when a chunk signals that the graph paused for a remote tool call. */
-function isRemoteToolCallChunk(chunk: StreamChunk): boolean {
-    return (
-        chunk.event === StreamEventType.UPDATES &&
-        (chunk.data as any)?.reason === REMOTE_TOOL_CALL_REASON
-    );
-}
-
 /** True when any collected message contains a remote_tool_call block. */
 function hasRemoteToolCalls(messages: Message[]): boolean {
-    return messages.some(
-        (msg) =>
-            msg.content &&
-            msg.content.some((block: any) => block.type === 'remote_tool_call')
-    );
+  return messages.some(
+    (msg) => msg.content && msg.content.some((block: any) => block.type === 'remote_tool_call')
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -79,184 +67,185 @@ function hasRemoteToolCalls(messages: Message[]): boolean {
  * ```
  */
 export async function* wsStreamInvoke(
-    context: WsStreamContext,
-    request: StreamRequest
+  context: WsStreamContext,
+  request: StreamRequest
 ): AsyncGenerator<StreamChunk, void, unknown> {
-    const url = buildWsUrl(context, '/v1/graph/ws');
+  const url = buildWsUrl(context, '/v1/graph/ws');
 
-    if (context.debug) {
-        console.debug('AgentFlowClient [WS]: connecting to', url);
+  if (context.debug) {
+    console.debug('AgentFlowClient [WS]: connecting to', url);
+  }
+
+  const ws = openWebSocket(url, context);
+
+  // ── Queue bridge ──────────────────────────────────────────────────────────
+  // WebSocket is event-based; async generators are pull-based.
+  // We buffer incoming items in a queue and wake up the generator each time.
+  const queue: Array<StreamChunk | Error | 'close'> = [];
+  let wakeUp: (() => void) | null = null;
+
+  const enqueue = (item: StreamChunk | Error | 'close'): void => {
+    queue.push(item);
+    if (wakeUp) {
+      const fn = wakeUp;
+      wakeUp = null;
+      fn();
     }
+  };
 
-    const ws = openWebSocket(url, context);
-
-    // ── Queue bridge ──────────────────────────────────────────────────────────
-    // WebSocket is event-based; async generators are pull-based.
-    // We buffer incoming items in a queue and wake up the generator each time.
-    const queue: Array<StreamChunk | Error | 'close'> = [];
-    let wakeUp: (() => void) | null = null;
-
-    const enqueue = (item: StreamChunk | Error | 'close'): void => {
-        queue.push(item);
-        if (wakeUp) {
-            const fn = wakeUp;
-            wakeUp = null;
-            fn();
-        }
-    };
-
-    const waitForItem = (): Promise<void> =>
-        new Promise((resolve) => {
-            if (queue.length > 0) {
-                resolve();
-            } else {
-                wakeUp = resolve;
-            }
-        });
-
-    ws.addEventListener('message', (event: MessageEvent) => {
-        try {
-            const chunk = JSON.parse(event.data as string) as StreamChunk;
-            enqueue(chunk);
-        } catch (e) {
-            if (context.debug) {
-                console.warn('AgentFlowClient [WS]: failed to parse chunk:', e);
-            }
-        }
+  const waitForItem = (): Promise<void> =>
+    new Promise((resolve) => {
+      if (queue.length > 0) {
+        resolve();
+      } else {
+        wakeUp = resolve;
+      }
     });
 
-    ws.addEventListener('error', () => {
-        enqueue(new Error('WebSocket error'));
-    });
-
-    ws.addEventListener('close', (event: CloseEvent) => {
-        if (context.debug) {
-            console.debug('AgentFlowClient [WS]: connection closed, code=', event.code);
-        }
-        enqueue('close');
-    });
-
-    // Wait for the connection to open (or fail)
-    await new Promise<void>((resolve, reject) => {
-        // Numeric readyState literals (OPEN===1) instead of WebSocket.OPEN: the
-        // global WebSocket may be absent on Node < 21 when a custom impl is injected.
-        if (ws.readyState === 1) {
-            resolve();
-            return;
-        }
-        ws.addEventListener('open', () => resolve(), { once: true });
-        ws.addEventListener('error', () => reject(new Error('WebSocket connection failed')), { once: true });
-    });
-
-    if (context.debug) {
-        console.debug('AgentFlowClient [WS]: connected');
-    }
-
-    // ── Main loop ─────────────────────────────────────────────────────────────
-    let threadId: string | undefined = (request.config as Record<string, any>)?.thread_id;
-
-    let nextPayload: WsGraphInput = {
-        invoke_type: 'fresh',
-        messages: request.messages,
-        initial_state: request.initial_state,
-        config: request.config,
-        recursion_limit: request.recursion_limit ?? 25,
-        response_granularity: request.response_granularity,
-    };
-
+  ws.addEventListener('message', (event: MessageEvent) => {
     try {
-        outerLoop: while (true) {
-            if (context.debug) {
-                console.debug(
-                    `AgentFlowClient [WS]: sending ${nextPayload.invoke_type} request, thread_id=${threadId ?? 'new'}`
-                );
-            }
+      const chunk = JSON.parse(event.data as string) as StreamChunk;
+      enqueue(chunk);
+    } catch (e) {
+      if (context.debug) {
+        console.warn('AgentFlowClient [WS]: failed to parse chunk:', e);
+      }
+    }
+  });
 
-            ws.send(JSON.stringify(nextPayload));
+  ws.addEventListener('error', () => {
+    enqueue(new Error('WebSocket error'));
+  });
 
-            // ── Inner loop: receive chunks until the server sends "done" ──────
-            const runMessages: Message[] = [];
+  ws.addEventListener('close', (event: CloseEvent) => {
+    if (context.debug) {
+      console.debug('AgentFlowClient [WS]: connection closed, code=', event.code);
+    }
+    enqueue('close');
+  });
 
-            innerLoop: while (true) {
-                await waitForItem();
-                const item = queue.shift()!;
+  // Wait for the connection to open (or fail)
+  await new Promise<void>((resolve, reject) => {
+    // Numeric readyState literals (OPEN===1) instead of WebSocket.OPEN: the
+    // global WebSocket may be absent on Node < 21 when a custom impl is injected.
+    if (ws.readyState === 1) {
+      resolve();
+      return;
+    }
+    ws.addEventListener('open', () => resolve(), { once: true });
+    ws.addEventListener('error', () => reject(new Error('WebSocket connection failed')), {
+      once: true,
+    });
+  });
 
-                if (item === 'close') {
-                    // Server closed the connection unexpectedly
-                    break outerLoop;
-                }
+  if (context.debug) {
+    console.debug('AgentFlowClient [WS]: connected');
+  }
 
-                if (item instanceof Error) {
-                    throw item;
-                }
+  // ── Main loop ─────────────────────────────────────────────────────────────
+  let threadId: string | undefined = (request.config as Record<string, any>)?.thread_id;
 
-                const chunk = item as StreamChunk;
+  let nextPayload: WsGraphInput = {
+    invoke_type: 'fresh',
+    messages: request.messages,
+    initial_state: request.initial_state,
+    config: request.config,
+    recursion_limit: request.recursion_limit ?? 25,
+    response_granularity: request.response_granularity,
+  };
 
-                // Track thread_id for resume requests
-                if (chunk.thread_id) {
-                    threadId = chunk.thread_id;
-                }
-                if ((chunk.metadata as Record<string, any>)?.thread_id) {
-                    threadId = (chunk.metadata as Record<string, any>).thread_id as string;
-                }
+  try {
+    outerLoop: while (true) {
+      if (context.debug) {
+        console.debug(
+          `AgentFlowClient [WS]: sending ${nextPayload.invoke_type} request, thread_id=${threadId ?? 'new'}`
+        );
+      }
 
-                // "done" signal: current run is complete
-                if (
-                    chunk.event === StreamEventType.UPDATES &&
-                    (chunk.data as any)?.status === 'done'
-                ) {
-                    break innerLoop;
-                }
+      ws.send(JSON.stringify(nextPayload));
 
-                // Accumulate messages for tool-call detection
-                if (chunk.message) {
-                    runMessages.push(chunk.message);
-                }
+      // ── Inner loop: receive chunks until the server sends "done" ──────
+      const runMessages: Message[] = [];
 
-                // Yield every chunk to the caller (same as HTTP stream)
-                yield chunk;
-            }
+      innerLoop: while (true) {
+        await waitForItem();
+        const item = queue.shift()!;
 
-            if (context.debug) {
-                console.debug(
-                    `AgentFlowClient [WS]: run complete, ${runMessages.length} messages collected`
-                );
-            }
-
-            // ── Tool-call detection & resume ──────────────────────────────────
-            if (hasRemoteToolCalls(runMessages) && context.toolExecutor) {
-                if (context.debug) {
-                    console.debug('AgentFlowClient [WS]: remote tool calls detected, executing…');
-                }
-
-                const toolResults = await context.toolExecutor.executeToolCalls(runMessages);
-
-                if (context.debug) {
-                    console.debug(`AgentFlowClient [WS]: ${toolResults.length} tool result(s) ready, resuming`);
-                }
-
-                nextPayload = {
-                    invoke_type: 'resume',
-                    tool_result: toolResults.map(serializeMessage),
-                    config: { ...(request.config ?? {}), thread_id: threadId },
-                    recursion_limit: request.recursion_limit ?? 25,
-                    response_granularity: request.response_granularity,
-                };
-                // continue outerLoop → send resume request
-            } else {
-                // No tool calls — the full run is done
-                break outerLoop;
-            }
+        if (item === 'close') {
+          // Server closed the connection unexpectedly
+          break outerLoop;
         }
-    } finally {
-        // CONNECTING===0, OPEN===1 (numeric literals; the global WebSocket may be
-        // absent on Node < 21 when a custom impl is injected).
-        if (ws.readyState === 1 || ws.readyState === 0) {
-            ws.close(1000);
+
+        if (item instanceof Error) {
+          throw item;
         }
+
+        const chunk = item as StreamChunk;
+
+        // Track thread_id for resume requests
+        if (chunk.thread_id) {
+          threadId = chunk.thread_id;
+        }
+        if ((chunk.metadata as Record<string, any>)?.thread_id) {
+          threadId = (chunk.metadata as Record<string, any>).thread_id as string;
+        }
+
+        // "done" signal: current run is complete
+        if (chunk.event === StreamEventType.UPDATES && (chunk.data as any)?.status === 'done') {
+          break innerLoop;
+        }
+
+        // Accumulate messages for tool-call detection
+        if (chunk.message) {
+          runMessages.push(chunk.message);
+        }
+
+        // Yield every chunk to the caller (same as HTTP stream)
+        yield chunk;
+      }
+
+      if (context.debug) {
+        console.debug(
+          `AgentFlowClient [WS]: run complete, ${runMessages.length} messages collected`
+        );
+      }
+
+      // ── Tool-call detection & resume ──────────────────────────────────
+      if (hasRemoteToolCalls(runMessages) && context.toolExecutor) {
+        if (context.debug) {
+          console.debug('AgentFlowClient [WS]: remote tool calls detected, executing…');
+        }
+
+        const toolResults = await context.toolExecutor.executeToolCalls(runMessages);
 
         if (context.debug) {
-            console.debug('AgentFlowClient [WS]: stream finished');
+          console.debug(
+            `AgentFlowClient [WS]: ${toolResults.length} tool result(s) ready, resuming`
+          );
         }
+
+        nextPayload = {
+          invoke_type: 'resume',
+          tool_result: toolResults.map(serializeMessage),
+          config: { ...(request.config ?? {}), thread_id: threadId },
+          recursion_limit: request.recursion_limit ?? 25,
+          response_granularity: request.response_granularity,
+        };
+        // continue outerLoop → send resume request
+      } else {
+        // No tool calls — the full run is done
+        break outerLoop;
+      }
     }
+  } finally {
+    // CONNECTING===0, OPEN===1 (numeric literals; the global WebSocket may be
+    // absent on Node < 21 when a custom impl is injected).
+    if (ws.readyState === 1 || ws.readyState === 0) {
+      ws.close(1000);
+    }
+
+    if (context.debug) {
+      console.debug('AgentFlowClient [WS]: stream finished');
+    }
+  }
 }

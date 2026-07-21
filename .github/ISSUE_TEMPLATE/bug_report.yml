@@ -1,0 +1,94 @@
+name: Bug report
+description: Something in the TypeScript client does not work as documented.
+labels: ['bug', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please do **not** file security vulnerabilities here -
+        see [SECURITY.md](https://github.com/10xHub/agentflow/blob/main/agentflow-client/SECURITY.md).
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: This is about `@10xscale/agentflow-client`, not the API server or the core Python package.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what actually happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: The smallest snippet that shows the problem. Redact tokens.
+      render: typescript
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Client version
+      placeholder: '0.2.0'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where does it run?
+      options:
+        - Node
+        - Browser (bundler)
+        - Browser (no bundler / CDN)
+        - Both Node and browser
+    validations:
+      required: true
+
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime and bundler versions
+      placeholder: 'Node 20.11, Vite 7.3, TypeScript 5.6'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module-system
+    attributes:
+      label: Module system
+      options:
+        - ESM (import)
+        - CJS (require)
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: server-version
+    attributes:
+      label: Server version
+      description: The `10xscale-agentflow-cli` version this client is talking to, if relevant.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Errors or logs
+      description: Full stack trace if there is one. Redact tokens.
+      render: text
+    validations:
+      required: false

@@ -11,66 +11,66 @@ import { buildHeaders, getRequestCredentials, RequestContext } from '../request.
 export interface FileUploadContext extends RequestContext {}
 
 export interface FileUploadResponse {
-    data: {
-        file_id: string;
-        mime_type: string;
-        size_bytes: number;
-        filename: string;
-        extracted_text: string | null;
-        url: string;
-        direct_url?: string | null;
-        direct_url_expires_at?: number | null;
-    };
-    metadata?: {
-        request_id: string;
-        timestamp: string;
-        message: string;
-    };
+  data: {
+    file_id: string;
+    mime_type: string;
+    size_bytes: number;
+    filename: string;
+    extracted_text: string | null;
+    url: string;
+    direct_url?: string | null;
+    direct_url_expires_at?: number | null;
+  };
+  metadata?: {
+    request_id: string;
+    timestamp: string;
+    message: string;
+  };
 }
 
 export interface FileInfoResponse {
-    data: {
-        file_id: string;
-        mime_type: string;
-        size_bytes: number;
-        filename?: string | null;
-        extracted_text: string | null;
-        direct_url?: string | null;
-        direct_url_expires_at?: number | null;
-    };
-    metadata?: {
-        request_id: string;
-        timestamp: string;
-        message: string;
-    };
+  data: {
+    file_id: string;
+    mime_type: string;
+    size_bytes: number;
+    filename?: string | null;
+    extracted_text: string | null;
+    direct_url?: string | null;
+    direct_url_expires_at?: number | null;
+  };
+  metadata?: {
+    request_id: string;
+    timestamp: string;
+    message: string;
+  };
 }
 
 export interface FileAccessUrlResponse {
-    data: {
-        file_id: string;
-        url: string;
-        expires_at?: number | null;
-        mime_type: string;
-    };
-    metadata?: {
-        request_id: string;
-        timestamp: string;
-        message: string;
-    };
+  data: {
+    file_id: string;
+    url: string;
+    expires_at?: number | null;
+    mime_type: string;
+  };
+  metadata?: {
+    request_id: string;
+    timestamp: string;
+    message: string;
+  };
 }
 
 export interface MultimodalConfigResponse {
-    data: {
-        media_storage_type: string;
-        media_storage_path: string;
-        media_max_size_mb: number;
-        document_handling: string;
-    };
-    metadata?: {
-        request_id: string;
-        timestamp: string;
-        message: string;
-    };
+  data: {
+    media_storage_type: string;
+    media_storage_path: string;
+    media_max_size_mb: number;
+    document_handling: string;
+  };
+  metadata?: {
+    request_id: string;
+    timestamp: string;
+    message: string;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -84,47 +84,47 @@ export interface MultimodalConfigResponse {
  * @returns FileUploadResponse with file_id and metadata
  */
 export async function uploadFile(
-    ctx: FileUploadContext,
-    file: File | Blob | { data: Blob; filename: string }
+  ctx: FileUploadContext,
+  file: File | Blob | { data: Blob; filename: string }
 ): Promise<FileUploadResponse> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
 
-    try {
-        const formData = new FormData();
+  try {
+    const formData = new FormData();
 
-        if (file instanceof File) {
-            formData.append('file', file, file.name);
-        } else if ('data' in file && 'filename' in file) {
-            formData.append('file', file.data, file.filename);
-        } else {
-            formData.append('file', file, 'upload');
-        }
-
-        const response = await fetch(`${ctx.baseUrl}/v1/files/upload`, {
-            method: 'POST',
-            headers: buildHeaders(ctx as RequestContext),
-            body: formData,
-            ...getRequestCredentials(ctx as RequestContext),
-            signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            const error = await createErrorFromResponse(
-                response,
-                'File upload failed',
-                '/v1/files/upload',
-                'POST'
-            );
-            throw error;
-        }
-
-        return (await response.json()) as FileUploadResponse;
-    } finally {
-        clearTimeout(timeoutId);
+    if (file instanceof File) {
+      formData.append('file', file, file.name);
+    } else if ('data' in file && 'filename' in file) {
+      formData.append('file', file.data, file.filename);
+    } else {
+      formData.append('file', file, 'upload');
     }
+
+    const response = await fetch(`${ctx.baseUrl}/v1/files/upload`, {
+      method: 'POST',
+      headers: buildHeaders(ctx as RequestContext),
+      body: formData,
+      ...getRequestCredentials(ctx as RequestContext),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const error = await createErrorFromResponse(
+        response,
+        'File upload failed',
+        '/v1/files/upload',
+        'POST'
+      );
+      throw error;
+    }
+
+    return (await response.json()) as FileUploadResponse;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -133,150 +133,141 @@ export async function uploadFile(
 /**
  * Download a file by its file_id. Returns raw Blob.
  */
-export async function getFile(
-    ctx: FileUploadContext,
-    fileId: string
-): Promise<Blob> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
+export async function getFile(ctx: FileUploadContext, fileId: string): Promise<Blob> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
 
-    try {
-        const response = await fetch(`${ctx.baseUrl}/v1/files/${encodeURIComponent(fileId)}`, {
-            method: 'GET',
-            headers: buildHeaders(ctx as RequestContext),
-            ...getRequestCredentials(ctx as RequestContext),
-            signal: controller.signal,
-        });
+  try {
+    const response = await fetch(`${ctx.baseUrl}/v1/files/${encodeURIComponent(fileId)}`, {
+      method: 'GET',
+      headers: buildHeaders(ctx as RequestContext),
+      ...getRequestCredentials(ctx as RequestContext),
+      signal: controller.signal,
+    });
 
-        clearTimeout(timeoutId);
+    clearTimeout(timeoutId);
 
-        if (!response.ok) {
-            const error = await createErrorFromResponse(
-                response,
-                'File download failed',
-                `/v1/files/${fileId}`,
-                'GET'
-            );
-            throw error;
-        }
-
-        return await response.blob();
-    } finally {
-        clearTimeout(timeoutId);
+    if (!response.ok) {
+      const error = await createErrorFromResponse(
+        response,
+        'File download failed',
+        `/v1/files/${fileId}`,
+        'GET'
+      );
+      throw error;
     }
+
+    return await response.blob();
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Get file info (metadata)
 // ---------------------------------------------------------------------------
 export async function getFileInfo(
-    ctx: FileUploadContext,
-    fileId: string
+  ctx: FileUploadContext,
+  fileId: string
 ): Promise<FileInfoResponse> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
 
-    try {
-        const response = await fetch(
-            `${ctx.baseUrl}/v1/files/${encodeURIComponent(fileId)}/info`,
-            {
-                method: 'GET',
-                headers: buildHeaders(ctx as RequestContext),
-                ...getRequestCredentials(ctx as RequestContext),
-                signal: controller.signal,
-            }
-        );
+  try {
+    const response = await fetch(`${ctx.baseUrl}/v1/files/${encodeURIComponent(fileId)}/info`, {
+      method: 'GET',
+      headers: buildHeaders(ctx as RequestContext),
+      ...getRequestCredentials(ctx as RequestContext),
+      signal: controller.signal,
+    });
 
-        clearTimeout(timeoutId);
+    clearTimeout(timeoutId);
 
-        if (!response.ok) {
-            const error = await createErrorFromResponse(
-                response,
-                'File info request failed',
-                `/v1/files/${fileId}/info`,
-                'GET'
-            );
-            throw error;
-        }
-
-        return (await response.json()) as FileInfoResponse;
-    } finally {
-        clearTimeout(timeoutId);
+    if (!response.ok) {
+      const error = await createErrorFromResponse(
+        response,
+        'File info request failed',
+        `/v1/files/${fileId}/info`,
+        'GET'
+      );
+      throw error;
     }
+
+    return (await response.json()) as FileInfoResponse;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Get file access URL
 // ---------------------------------------------------------------------------
 export async function getFileAccessUrl(
-    ctx: FileUploadContext,
-    fileId: string
+  ctx: FileUploadContext,
+  fileId: string
 ): Promise<FileAccessUrlResponse> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
 
-    try {
-        const response = await fetch(
-            `${ctx.baseUrl}/v1/files/${encodeURIComponent(fileId)}/url`,
-            {
-                method: 'GET',
-                headers: buildHeaders(ctx as RequestContext),
-                ...getRequestCredentials(ctx as RequestContext),
-                signal: controller.signal,
-            }
-        );
+  try {
+    const response = await fetch(`${ctx.baseUrl}/v1/files/${encodeURIComponent(fileId)}/url`, {
+      method: 'GET',
+      headers: buildHeaders(ctx as RequestContext),
+      ...getRequestCredentials(ctx as RequestContext),
+      signal: controller.signal,
+    });
 
-        clearTimeout(timeoutId);
+    clearTimeout(timeoutId);
 
-        if (!response.ok) {
-            const error = await createErrorFromResponse(
-                response,
-                'File access URL request failed',
-                `/v1/files/${fileId}/url`,
-                'GET'
-            );
-            throw error;
-        }
-
-        return (await response.json()) as FileAccessUrlResponse;
-    } finally {
-        clearTimeout(timeoutId);
+    if (!response.ok) {
+      const error = await createErrorFromResponse(
+        response,
+        'File access URL request failed',
+        `/v1/files/${fileId}/url`,
+        'GET'
+      );
+      throw error;
     }
+
+    return (await response.json()) as FileAccessUrlResponse;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Get multimodal config
 // ---------------------------------------------------------------------------
 export async function getMultimodalConfig(
-    ctx: FileUploadContext
+  ctx: FileUploadContext
 ): Promise<MultimodalConfigResponse> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ctx.timeout);
 
-    try {
-        const response = await fetch(`${ctx.baseUrl}/v1/config/multimodal`, {
-            method: 'GET',
-            headers: buildHeaders(ctx as RequestContext, {
-                accept: 'application/json',
-            }),
-            ...getRequestCredentials(ctx as RequestContext),
-            signal: controller.signal,
-        });
+  try {
+    const response = await fetch(`${ctx.baseUrl}/v1/config/multimodal`, {
+      method: 'GET',
+      headers: buildHeaders(ctx as RequestContext, {
+        accept: 'application/json',
+      }),
+      ...getRequestCredentials(ctx as RequestContext),
+      signal: controller.signal,
+    });
 
-        clearTimeout(timeoutId);
+    clearTimeout(timeoutId);
 
-        if (!response.ok) {
-            const error = await createErrorFromResponse(
-                response,
-                'Multimodal config request failed',
-                '/v1/config/multimodal',
-                'GET'
-            );
-            throw error;
-        }
-
-        return (await response.json()) as MultimodalConfigResponse;
-    } finally {
-        clearTimeout(timeoutId);
+    if (!response.ok) {
+      const error = await createErrorFromResponse(
+        response,
+        'Multimodal config request failed',
+        '/v1/config/multimodal',
+        'GET'
+      );
+      throw error;
     }
+
+    return (await response.json()) as MultimodalConfigResponse;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }

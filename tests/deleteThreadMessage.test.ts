@@ -3,12 +3,11 @@ import { deleteThreadMessage } from '../src/endpoints/deleteThreadMessage';
 import type {
   DeleteThreadMessageContext,
   DeleteThreadMessageRequest,
-  DeleteThreadMessageResponse
+  DeleteThreadMessageResponse,
 } from '../src/endpoints/deleteThreadMessage';
 
 // Mock fetch globally
 const fetchMock = vi.fn();
-// @ts-ignore
 global.fetch = fetchMock;
 
 describe('Delete Thread Message Endpoint Tests', () => {
@@ -20,13 +19,13 @@ describe('Delete Thread Message Endpoint Tests', () => {
       baseUrl: 'http://localhost:8000',
       authToken: 'test-token',
       timeout: 5000,
-      debug: false
+      debug: false,
     };
 
     mockRequest = {
       threadId: 5,
       messageId: '58788989',
-      config: {}
+      config: {},
     };
 
     fetchMock.mockReset();
@@ -43,18 +42,18 @@ describe('Delete Thread Message Endpoint Tests', () => {
         data: {
           success: true,
           message: 'Deleted',
-          data: {}
+          data: {},
         },
         metadata: {
           request_id: 'f2e2147709b64caca391441256666d68',
           timestamp: '2025-10-26T00:44:22.910508',
-          message: 'Success'
-        }
+          message: 'Success',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -68,7 +67,7 @@ describe('Delete Thread Message Endpoint Tests', () => {
     it('should call correct URL and method with headers and body', async () => {
       const mockResponse: DeleteThreadMessageResponse = {
         data: { success: true, message: 'OK', data: {} },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'Success' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'Success' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -89,7 +88,7 @@ describe('Delete Thread Message Endpoint Tests', () => {
       const req: DeleteThreadMessageRequest = { threadId: 't-5', messageId: 'm-1', config: {} };
       const mockResponse: DeleteThreadMessageResponse = {
         data: { success: true, message: 'OK', data: {} },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'Success' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'Success' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -104,7 +103,7 @@ describe('Delete Thread Message Endpoint Tests', () => {
       const ctx: DeleteThreadMessageContext = { ...mockContext, authToken: null };
       const mockResponse: DeleteThreadMessageResponse = {
         data: { success: true, message: 'OK', data: {} },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'Success' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'Success' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -138,11 +137,14 @@ describe('Delete Thread Message Endpoint Tests', () => {
     it('should timeout', async () => {
       const slowContext = { ...mockContext, timeout: 50 };
       fetchMock.mockImplementation(
-        () => new Promise((_, reject) => {
-          setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
-        })
+        () =>
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new DOMException('AbortError', 'AbortError')), 100);
+          })
       );
-      await expect(deleteThreadMessage(slowContext, mockRequest)).rejects.toThrow('Request timeout after 50ms');
+      await expect(deleteThreadMessage(slowContext, mockRequest)).rejects.toThrow(
+        'Request timeout after 50ms'
+      );
     });
 
     it('should handle network error', async () => {
@@ -159,7 +161,7 @@ describe('Delete Thread Message Endpoint Tests', () => {
 
       const mockResponse: DeleteThreadMessageResponse = {
         data: { success: true, message: 'OK', data: {} },
-        metadata: { request_id: 'id', timestamp: 'ts', message: 'Success' }
+        metadata: { request_id: 'id', timestamp: 'ts', message: 'Success' },
       };
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };
       fetchMock.mockResolvedValue(mockFetchResponse);
@@ -167,7 +169,10 @@ describe('Delete Thread Message Endpoint Tests', () => {
       await deleteThreadMessage(ctx, mockRequest);
 
       expect(debugSpy).toHaveBeenCalled();
-      expect(infoSpy).toHaveBeenCalledWith('AgentFlowClient: Thread message deleted successfully', mockResponse);
+      expect(infoSpy).toHaveBeenCalledWith(
+        'AgentFlowClient: Thread message deleted successfully',
+        mockResponse
+      );
     });
   });
 });

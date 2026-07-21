@@ -6,7 +6,7 @@ describe('AgentState', () => {
   describe('constructor', () => {
     it('should create an empty AgentState with default values', () => {
       const state = new AgentState();
-      
+
       expect(state.context).toEqual([]);
       expect(state.context_summary).toBeNull();
       expect(state.execution_meta).toBeDefined();
@@ -21,9 +21,9 @@ describe('AgentState', () => {
       const message = Message.text_message('Hello', 'user');
       const state = new AgentState({
         context: [message],
-        context_summary: 'Test summary'
+        context_summary: 'Test summary',
       });
-      
+
       expect(state.context).toHaveLength(1);
       expect(state.context[0]).toBe(message);
       expect(state.context_summary).toBe('Test summary');
@@ -36,10 +36,10 @@ describe('AgentState', () => {
           step: 5,
           is_running: false,
           is_interrupted: true,
-          is_stopped_requested: false
-        }
+          is_stopped_requested: false,
+        },
       });
-      
+
       expect(state.execution_meta.current_node).toBe('processing');
       expect(state.execution_meta.step).toBe(5);
       expect(state.execution_meta.is_running).toBe(false);
@@ -58,11 +58,11 @@ describe('AgentState', () => {
             node: 'human_feedback',
             reason: 'User approval required',
             status: 'pending',
-            data: { question: 'Proceed?' }
-          }
-        }
+            data: { question: 'Proceed?' },
+          },
+        },
       });
-      
+
       expect(state.execution_meta.interrupt).toBeDefined();
       expect(state.execution_meta.interrupt?.node).toBe('human_feedback');
       expect(state.execution_meta.interrupt?.reason).toBe('User approval required');
@@ -74,11 +74,11 @@ describe('AgentState', () => {
       const messages = [
         Message.text_message('Message 1', 'user'),
         Message.text_message('Message 2', 'assistant'),
-        Message.text_message('Message 3', 'user')
+        Message.text_message('Message 3', 'user'),
       ];
-      
+
       const state = new AgentState({ context: messages });
-      
+
       expect(state.context).toHaveLength(3);
       expect(state.context[0].text()).toBe('Message 1');
       expect(state.context[1].text()).toBe('Message 2');
@@ -87,13 +87,13 @@ describe('AgentState', () => {
 
     it('should handle complex state updates', () => {
       const state = new AgentState();
-      
+
       // Update state
       state.context.push(Message.text_message('New message', 'user'));
       state.context_summary = 'Updated summary';
       state.execution_meta.step = 10;
       state.execution_meta.current_node = 'final';
-      
+
       expect(state.context).toHaveLength(1);
       expect(state.context_summary).toBe('Updated summary');
       expect(state.execution_meta.step).toBe(10);
@@ -104,9 +104,9 @@ describe('AgentState', () => {
       const state = new AgentState({
         context: [],
         custom_field: 'custom_value',
-        another_field: 123
+        another_field: 123,
       });
-      
+
       expect((state as any).custom_field).toBe('custom_value');
       expect((state as any).another_field).toBe(123);
     });

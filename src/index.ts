@@ -31,7 +31,7 @@ export * from './endpoints/fixGraph.js';
 // Export setup graph Response types
 export * from './endpoints/setupGraph.js';
 
-// Export state schema Response types  
+// Export state schema Response types
 export * from './endpoints/stateSchema.js';
 
 // Export thread state Response types

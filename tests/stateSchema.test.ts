@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { stateSchema } from '../src/endpoints/stateSchema';
-import type { StateSchemaContext, StateSchemaResponse, AgentStateSchema } from '../src/endpoints/stateSchema';
+import type {
+  StateSchemaContext,
+  StateSchemaResponse,
+  AgentStateSchema,
+} from '../src/endpoints/stateSchema';
 import { AgentFlowClient } from '../src';
 
 // Mock fetch globally
@@ -15,7 +19,7 @@ describe('State Schema Endpoint Tests', () => {
       baseUrl: 'http://localhost:8000',
       authToken: 'test-token',
       timeout: 5000,
-      debug: false
+      debug: false,
     };
 
     fetchMock.mockReset();
@@ -36,12 +40,12 @@ describe('State Schema Endpoint Tests', () => {
           context: {
             type: 'array',
             description: 'List of context items',
-            items: { type: 'object' }
+            items: { type: 'object' },
           },
           context_summary: {
             description: 'Summary of context',
             anyOf: [{ type: 'string' }, { type: 'null' }],
-            default: null
+            default: null,
           },
           execution_meta: {
             type: 'object',
@@ -51,14 +55,14 @@ describe('State Schema Endpoint Tests', () => {
               step: { type: 'integer' },
               is_running: { type: 'boolean' },
               is_interrupted: { type: 'boolean' },
-              is_stopped_requested: { type: 'boolean' }
-            }
+              is_stopped_requested: { type: 'boolean' },
+            },
           },
           cv_text: { type: 'string', default: '', description: 'CV content' },
           cid: { type: 'string', default: '', description: 'Candidate ID' },
           jd_text: { type: 'string', default: '', description: 'Job description content' },
-          jd_id: { type: 'string', default: '', description: 'Job description ID' }
-        }
+          jd_id: { type: 'string', default: '', description: 'Job description ID' },
+        },
       };
 
       const mockResponse: StateSchemaResponse = {
@@ -66,13 +70,13 @@ describe('State Schema Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -89,10 +93,10 @@ describe('State Schema Endpoint Tests', () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'accept': 'application/json',
-          'Authorization': 'Bearer test-token'
+          accept: 'application/json',
+          Authorization: 'Bearer test-token',
         },
-        signal: expect.any(AbortSignal)
+        signal: expect.any(AbortSignal),
       });
     });
 
@@ -105,8 +109,8 @@ describe('State Schema Endpoint Tests', () => {
         properties: {
           context: { type: 'array' },
           context_summary: { anyOf: [{ type: 'string' }, { type: 'null' }] },
-          execution_meta: { type: 'object' }
-        }
+          execution_meta: { type: 'object' },
+        },
       };
 
       const mockResponse: StateSchemaResponse = {
@@ -114,13 +118,13 @@ describe('State Schema Endpoint Tests', () => {
         metadata: {
           request_id: 'test-request-id',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue(mockResponse)
+        json: vi.fn().mockResolvedValue(mockResponse),
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -131,9 +135,9 @@ describe('State Schema Endpoint Tests', () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'accept': 'application/json'
+          accept: 'application/json',
         },
-        signal: expect.any(AbortSignal)
+        signal: expect.any(AbortSignal),
       });
     });
   });
@@ -142,7 +146,7 @@ describe('State Schema Endpoint Tests', () => {
     it('should throw error for non-2xx HTTP status', async () => {
       const mockFetchResponse = {
         ok: false,
-        status: 404
+        status: 404,
       };
       fetchMock.mockResolvedValue(mockFetchResponse);
 
@@ -174,7 +178,11 @@ describe('State Schema Endpoint Tests', () => {
         type: 'object',
         properties: {
           context: { type: 'array', description: 'List of context items' },
-          context_summary: { description: 'Summary', anyOf: [{ type: 'string' }, { type: 'null' }], default: null },
+          context_summary: {
+            description: 'Summary',
+            anyOf: [{ type: 'string' }, { type: 'null' }],
+            default: null,
+          },
           execution_meta: {
             type: 'object',
             properties: {
@@ -182,10 +190,10 @@ describe('State Schema Endpoint Tests', () => {
               step: { type: 'integer' },
               is_running: { type: 'boolean' },
               is_interrupted: { type: 'boolean' },
-              is_stopped_requested: { type: 'boolean' }
-            }
-          }
-        }
+              is_stopped_requested: { type: 'boolean' },
+            },
+          },
+        },
       };
 
       const mockResponse: StateSchemaResponse = {
@@ -193,8 +201,8 @@ describe('State Schema Endpoint Tests', () => {
         metadata: {
           request_id: 'req-1',
           timestamp: '2025-10-19T01:00:00.000000',
-          message: 'OK'
-        }
+          message: 'OK',
+        },
       };
 
       const mockFetchResponse = { ok: true, json: vi.fn().mockResolvedValue(mockResponse) };

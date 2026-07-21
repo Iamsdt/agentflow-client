@@ -6,8 +6,6 @@
 
 A TypeScript client library for the **AgentFlow** multi-agent system API. Build conversational AI applications with streaming responses, realtime audio, tool execution, and dynamic state management.
 
-
-
 ## ✨ Features
 
 - 🚀 **Simple API** - Clean, intuitive client for AgentFlow
@@ -39,13 +37,11 @@ import { AgentFlowClient, Message } from '@10xscale/agentflow-client';
 const client = new AgentFlowClient({
   baseUrl: 'http://localhost:8000',
   authToken: 'your-token', // optional legacy Bearer auth
-  debug: true              // optional
+  debug: true, // optional
 });
 
 // Send a message and get response
-const result = await client.invoke([
-  Message.text_message('Hello, how can you help me?', 'user')
-]);
+const result = await client.invoke([Message.text_message('Hello, how can you help me?', 'user')]);
 
 console.log(result.messages); // Array of response messages
 ```
@@ -53,11 +49,7 @@ console.log(result.messages); // Array of response messages
 ### Authentication Options
 
 ```typescript
-import {
-  AgentFlowClient,
-  basicAuth,
-  headerAuth,
-} from '@10xscale/agentflow-client';
+import { AgentFlowClient, basicAuth, headerAuth } from '@10xscale/agentflow-client';
 
 const bearerClient = new AgentFlowClient({
   baseUrl: 'https://api.example.com',
@@ -84,9 +76,7 @@ const sessionClient = new AgentFlowClient({
 
 ```typescript
 // Stream responses in real-time
-const stream = client.stream([
-  Message.text_message('Tell me a story', 'user')
-]);
+const stream = client.stream([Message.text_message('Tell me a story', 'user')]);
 
 for await (const chunk of stream) {
   if (chunk.event === 'message') {
@@ -114,10 +104,10 @@ session.on('output_transcript', (e) => console.log(e.text));
 session.on('tool_call', (e) => console.log('tool', e.name, e.args));
 session.on('error', (e) => console.error(e.message));
 
-await session.ready;            // socket open + init sent
-session.sendAudio(micChunk);    // PCM16 @ 16 kHz (Uint8Array | ArrayBuffer)
+await session.ready; // socket open + init sent
+session.sendAudio(micChunk); // PCM16 @ 16 kHz (Uint8Array | ArrayBuffer)
 // push-to-talk: session.activityStart() / session.activityEnd()
-session.close();                // graceful end; disables reconnect
+session.close(); // graceful end; disables reconnect
 ```
 
 Auth uses the browser-safe `agentflow-bearer` subprotocol automatically. In Node < 21 (no global
@@ -140,11 +130,7 @@ const accessUrl = upload.data.direct_url ?? upload.data.url;
 const fileInfo = await client.getFileInfo(upload.data.file_id);
 const fileUrl = await client.getFileAccessUrl(upload.data.file_id);
 
-const msg = Message.withFile(
-  'Summarize this document',
-  upload.data.file_id,
-  upload.data.mime_type
-);
+const msg = Message.withFile('Summarize this document', upload.data.file_id, upload.data.mime_type);
 ```
 
 ### Tool Registration
@@ -160,52 +146,57 @@ client.registerTool({
   parameters: {
     type: 'object',
     properties: {
-      location: { type: 'string' }
+      location: { type: 'string' },
     },
-    required: ['location']
+    required: ['location'],
   },
   handler: async ({ location }) => {
     // Your tool logic here
     return { temperature: 72, conditions: 'sunny' };
-  }
+  },
 });
 
 // Tools execute automatically during invoke
-const result = await client.invoke([
-  Message.text_message('What is the weather in NYC?', 'user')
-]);
+const result = await client.invoke([Message.text_message('What is the weather in NYC?', 'user')]);
 ```
 
 ## 📚 Documentation
 
 ### Getting Started
+
 - **[Getting Started Guide](docs/getting-started.md)** - Complete setup and first steps
 - **[API Reference](docs/api-reference.md)** - Complete API documentation
 - **[TypeScript Types](docs/typescript-types.md)** - Type definitions and usage
 
 ### Core Concepts
+
 - **[Invoke API](docs/invoke-usage.md)** - Request/response pattern with tool execution
 - **[Stream API](docs/stream-usage.md)** - Real-time streaming responses
 - **[State Schema](docs/state-schema-guide.md)** - Dynamic state management and validation
 - **[Tools Guide](docs/tools-guide.md)** - Tool registration and execution ⚠️ **Important: Remote vs Backend tools**
 
 ### Reference
+
 - **[Quick References](docs/)** - Quick refs for stream and state schema APIs
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
 
 ## 🎯 Key APIs
 
 ### `invoke()` - Batch Processing
+
 Execute agent with automatic tool execution loop:
+
 ```typescript
 const result = await client.invoke(messages, {
   recursion_limit: 25,
-  response_granularity: 'full'
+  response_granularity: 'full',
 });
 ```
 
 ### `stream()` - Real-time Streaming
+
 Stream responses as they're generated:
+
 ```typescript
 const stream = client.stream(messages);
 for await (const chunk of stream) {
@@ -214,19 +205,25 @@ for await (const chunk of stream) {
 ```
 
 ### `graphStateSchema()` - Dynamic Schema
+
 Get agent state schema for form generation and validation:
+
 ```typescript
 const schema = await client.graphStateSchema();
 // Build forms, validate data, generate types
 ```
 
 ### Tool Registration
+
 Register local tools that agents can execute:
+
 ```typescript
 client.registerTool({
   node: 'node_name',
   name: 'tool_name',
-  handler: async (args) => { /* ... */ }
+  handler: async (args) => {
+    /* ... */
+  },
 });
 ```
 
@@ -307,7 +304,7 @@ import type {
   InvokeResult,
   StreamChunk,
   AgentState,
-  AgentStateSchema
+  AgentStateSchema,
 } from '@10xscale/agentflow-client';
 ```
 

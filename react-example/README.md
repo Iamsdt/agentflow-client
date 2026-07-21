@@ -38,22 +38,22 @@ npm run dev
 This example uses the `AgentFlowClient` from the `@10xscale/agentflow-client` package:
 
 ```javascript
-import { AgentFlowClient, Message } from '@10xscale/agentflow-client'
+import { AgentFlowClient, Message } from '@10xscale/agentflow-client';
 
 // Create client
 const client = new AgentFlowClient({
   baseUrl: 'http://localhost:8000',
-  debug: true
-})
+  debug: true,
+});
 
 // Send a message (non-streaming)
-const message = Message.text_message('Hello!', 'user')
-const result = await client.invoke([message])
+const message = Message.text_message('Hello!', 'user');
+const result = await client.invoke([message]);
 
 // Send a message (streaming)
-const stream = client.stream([message])
+const stream = client.stream([message]);
 for await (const chunk of stream) {
-  console.log(chunk)
+  console.log(chunk);
 }
 ```
 

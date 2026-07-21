@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  basicAuth,
-  buildHeaders,
-  getRequestCredentials,
-  headerAuth,
-} from '../src/request';
+import { basicAuth, buildHeaders, getRequestCredentials, headerAuth } from '../src/request';
 
 describe('request helpers', () => {
   it('keeps backward-compatible bearer token auth', () => {

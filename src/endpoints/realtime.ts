@@ -80,6 +80,10 @@ type ChannelMap = {
 
 type ChannelName = keyof ChannelMap;
 
+// The erased listener shape used for internal storage. Public `on`/`off` stay
+// fully typed via ChannelMap[K]; this only avoids the unsafe `Function` type.
+type ChannelListener = (...args: never[]) => void;
+
 function genThreadId(): string {
   const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
   if (c?.randomUUID) {
@@ -126,7 +130,7 @@ export class RealtimeSession {
   private ctx: RealtimeContext;
   private init: RealtimeInit;
   private ws: WebSocket | null = null;
-  private listeners: Partial<Record<ChannelName, Function[]>> = {};
+  private listeners: Partial<Record<ChannelName, ChannelListener[]>> = {};
   private resolveReady!: () => void;
   private rejectReady!: (err: Error) => void;
   private readyResolved = false;
@@ -184,7 +188,7 @@ export class RealtimeSession {
   // ── Subscription API ─────────────────────────────────────────────────────────
   on<K extends ChannelName>(event: K, listener: ChannelMap[K]): this {
     if (!this.listeners[event]) this.listeners[event] = [];
-    (this.listeners[event] as Function[]).push(listener as Function);
+    (this.listeners[event] as ChannelListener[]).push(listener as ChannelListener);
     return this;
   }
   off<K extends ChannelName>(event: K, listener: ChannelMap[K]): this {
@@ -296,10 +300,7 @@ export class RealtimeSession {
     this.reconnectAttempts += 1;
     const attempt = this.reconnectAttempts;
     const delayMs =
-      Math.min(
-        this.reconnectCfg.baseDelay * 2 ** (attempt - 1),
-        this.reconnectCfg.maxDelay
-      ) * 1000;
+      Math.min(this.reconnectCfg.baseDelay * 2 ** (attempt - 1), this.reconnectCfg.maxDelay) * 1000;
     this.emit('reconnecting', attempt);
     setTimeout(() => this.reconnect(), delayMs);
   }

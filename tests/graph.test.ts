@@ -5,7 +5,7 @@ import type { PingResponse, GraphResponse } from '../src/index';
 describe('AgentFlow API Tests', () => {
   const client = new AgentFlowClient({
     baseUrl: 'http://localhost:8000',
-    debug: true
+    debug: true,
   });
 
   describe('Ping API', () => {
@@ -54,7 +54,7 @@ describe('AgentFlow API Tests', () => {
     it('should have proper graph response structure', async () => {
       try {
         const result: GraphResponse = await client.graph();
-        
+
         // Verify the response structure
         expect(result.metadata).toBeDefined();
         expect(result.metadata.request_id).toBeDefined();
@@ -80,7 +80,7 @@ describe('AgentFlow API Tests', () => {
         baseUrl: 'http://localhost:8000',
         authToken: 'test-token',
         timeout: 5000,
-        debug: false
+        debug: false,
       });
 
       expect(configuredClient).toBeDefined();

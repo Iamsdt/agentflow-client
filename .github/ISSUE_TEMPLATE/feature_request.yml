@@ -1,0 +1,56 @@
+name: Feature request
+description: Propose a new capability for the TypeScript client.
+labels: ['enhancement', 'needs-triage']
+body:
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues and discussions for this idea.
+          required: true
+        - label: This belongs in the client SDK, not in the API server or the core Python package.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that is hard or impossible today? Describe the situation, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: What should it look like from the caller's side?
+      render: typescript
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Client configuration / auth
+        - Invoke and streaming
+        - WebSocket / realtime
+        - Threads and checkpointer
+        - Memory store
+        - Files / multimodal
+        - Client-side tool execution
+        - Types / DX
+        - Packaging and build
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: breaking
+    attributes:
+      label: Compatibility
+      options:
+        - label: This would be a breaking change to the public API or the package entry points.
+          required: false

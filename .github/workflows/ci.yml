@@ -1,0 +1,128 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint, format and types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier
+        run: npm run format:check
+
+      - name: Type check
+        run: npm run typecheck
+
+  test:
+    name: Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Must cover the range declared in package.json `engines.node` (>=18).
+        node: ['18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        if: matrix.node == '20'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  package:
+    name: Build and verify package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # Verify against the actual tarball, not against package.json. Entry points
+      # that point at files the build never emits are the classic npm release bug.
+      - name: Assert the tarball contains every declared entry point
+        run: |
+          node --input-type=module <<'EOF'
+          import { execSync } from 'node:child_process';
+          import { readFileSync } from 'node:fs';
+
+          const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+          const packed = JSON.parse(execSync('npm pack --dry-run --json').toString());
+          const files = new Set(packed[0].files.map((f) => f.path));
+
+          const required = new Set([
+            pkg.main,
+            pkg.module,
+            pkg.types,
+            pkg.exports['.'].import,
+            pkg.exports['.'].require,
+            pkg.exports['.'].types,
+            'README.md',
+            'LICENSE',
+          ].filter(Boolean).map((p) => p.replace(/^\.\//, '')));
+
+          const missing = [...required].filter((p) => !files.has(p));
+          if (missing.length) {
+            console.error('::error::Tarball is missing declared entry points:');
+            for (const m of missing) console.error(`::error::  ${m}`);
+            process.exit(1);
+          }
+          if (pkg.publishConfig?.access !== 'public') {
+            console.error('::error::Scoped package needs publishConfig.access=public or publish fails.');
+            process.exit(1);
+          }
+          console.log(`OK: ${required.size} required paths present in ${files.size} packed files.`);
+          EOF
+
+      - name: Smoke test the built package
+        run: |
+          npm pack
+          mkdir -p /tmp/smoke && cd /tmp/smoke
+          npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE"/*.tgz
+          node -e "const m=require('@10xscale/agentflow-client');if(!m.AgentFlowClient)throw new Error('CJS entry broken');console.log('CJS OK')"
+          node --input-type=module -e "import('@10xscale/agentflow-client').then(m=>{if(!m.AgentFlowClient)throw new Error('ESM entry broken');console.log('ESM OK')})"
