@@ -2,14 +2,41 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WS_BEARER_SUBPROTOCOL, resolveBearerToken, buildWsUrl, openWebSocket } from '../src/ws.js';
 
 describe('resolveBearerToken', () => {
-  it('prefers authToken', () => {
+  it('uses authToken when no auth is configured', () => {
     expect(resolveBearerToken({ authToken: 'tok' })).toBe('tok');
   });
-  it('falls back to bearer auth', () => {
+  it('uses bearer auth when no authToken is configured', () => {
     expect(resolveBearerToken({ auth: { type: 'bearer', token: 'b' } })).toBe('b');
   });
   it('returns null when no token', () => {
     expect(resolveBearerToken({})).toBeNull();
+  });
+
+  // `auth` takes precedence over `authToken`, matching buildHeaders on the HTTP path.
+  describe('when both auth and authToken are set', () => {
+    it('prefers the bearer token from auth over authToken', () => {
+      expect(resolveBearerToken({ authToken: 'tok', auth: { type: 'bearer', token: 'b' } })).toBe(
+        'b'
+      );
+    });
+
+    it('returns null for basic auth rather than falling back to authToken', () => {
+      expect(
+        resolveBearerToken({
+          authToken: 'tok',
+          auth: { type: 'basic', username: 'u', password: 'p' },
+        })
+      ).toBeNull();
+    });
+
+    it('returns null for header auth rather than falling back to authToken', () => {
+      expect(
+        resolveBearerToken({
+          authToken: 'tok',
+          auth: { type: 'header', name: 'X-API-Key', value: 'k' },
+        })
+      ).toBeNull();
+    });
   });
 });
 

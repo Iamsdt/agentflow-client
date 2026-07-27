@@ -17,7 +17,7 @@ export interface ClearThreadStateResponse {
 
 export async function clearThreadState(
   context: ClearThreadStateContext,
-  threadId: number
+  threadId: string | number
 ): Promise<ClearThreadStateResponse> {
   try {
     if (context.debug) {

@@ -27,15 +27,22 @@ export interface WsAuthContext {
   webSocketImpl?: WebSocketImpl;
 }
 
-/** Resolve the bearer token with the same priority as `buildHeaders`. */
+/**
+ * Resolve the bearer token with the same priority as `buildHeaders`.
+ *
+ * `auth` takes precedence over `authToken`, matching the HTTP path. When `auth`
+ * is set to a non-bearer scheme (basic/header) there is no bearer token to send,
+ * so this returns `null` rather than silently falling back to `authToken` — the
+ * HTTP path would not send a bearer in that case either.
+ */
 export function resolveBearerToken(
   context: Pick<WsAuthContext, 'authToken' | 'auth'>
 ): string | null {
+  if (context.auth) {
+    return context.auth.type === 'bearer' ? context.auth.token : null;
+  }
   if (context.authToken) {
     return context.authToken;
-  }
-  if (context.auth?.type === 'bearer') {
-    return context.auth.token;
   }
   return null;
 }

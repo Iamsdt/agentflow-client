@@ -22,6 +22,88 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.4.0] - 2026-07-27
+
+### Breaking
+
+- **WebSocket auth: `auth` now takes precedence over `authToken`.** `resolveBearerToken()`
+  previously checked `authToken` first and only fell back to `auth`. It now resolves `auth`
+  first, matching `buildHeaders()` on the HTTP path, and returns `null` when `auth` is set to
+  a non-bearer scheme instead of falling back to `authToken`. This affects `wsStream()` and
+  `realtime()`.
+
+  You are affected only if you set **both** `auth` and `authToken` on the client - a single
+  credential behaves exactly as before. Two cases change:
+
+  | Config                                                     | Before  | After  |
+  | ---------------------------------------------------------- | ------- | ------ |
+  | `auth: {type:'bearer', token:'b'}` + `authToken: 'tok'`    | `'tok'` | `'b'`  |
+  | `auth: {type:'basic'\|'header', ...}` + `authToken: 'tok'` | `'tok'` | `null` |
+
+  The rationale for the first case is consistency: `buildHeaders()` has always resolved `auth`
+  before `authToken`, so the socket and the HTTP path now agree on which credential wins.
+
+  The second case is the one to check before upgrading, because what still reaches the server
+  depends on your runtime. `openWebSocket()` forwards only the `Authorization` header, and only
+  to implementations that accept a third options argument:
+
+  - **Basic auth on Node** (`ws`, or a passed `webSocketImpl`) - unaffected in practice. The
+    `Authorization: Basic ...` header is still sent; you simply no longer also get an unrelated
+    bearer subprotocol alongside it.
+  - **Basic auth in a browser** - the socket now carries no credential. Browsers cannot set
+    headers on a WebSocket, so the basic header is dropped and the bearer fallback is gone.
+  - **Header auth (`{ type: 'header' }`) in any runtime** - the socket now carries no
+    credential. A custom header name is never forwarded by `openWebSocket()`, in Node or the
+    browser, and the bearer fallback is gone.
+
+  **Migration:** if you hit one of the last two, pass the socket credential as bearer -
+  `auth: { type: 'bearer', token }`, or drop `auth` and keep `authToken` - so the credential
+  travels by the one mechanism the WebSocket endpoints accept in every runtime.
+
+### Fixed
+
+- **`ToolParameter.required` was mandatory, so all-optional tools did not typecheck**
+  ([#12](https://github.com/10xHub/agentflow-client/issues/12)). In JSON Schema `required` is
+  an optional keyword, but the interface declared it as `required: string[]`, so registering a
+  tool whose arguments are all optional failed with `TS2741: Property 'required' is missing`
+  unless the caller wrote `required: []` by hand. This hit exactly the read-only tools an agent
+  calls most (`list_files`, `read_problems`, `read_terminal`, `read_diff`). `required` and
+  `properties` are now both optional, so `parameters: { type: 'object' }` is valid for a tool
+  that takes no arguments. `ToolParameter` also accepts arbitrary JSON Schema keywords
+  (`additionalProperties`, `$defs`, ...) instead of rejecting them as excess properties.
+
+  The change is backwards compatible - existing declarations that pass `required` keep working,
+  and the wire format is unchanged: `client.setup()` and `ToolExecutor.all_tools()` now fill in
+  the omitted keywords via the new exported `normalizeToolParameters()` helper, so the server
+  still receives a complete `{ type, properties, required }` schema. Registrations with no
+  `parameters` at all now serialize to `{ type: 'object', properties: {}, required: [] }`
+  instead of a bare `{}`, which is a valid function schema for every provider.
+
+- **`agent.ts` broke type resolution under `moduleResolution: nodenext`.** Its `./message`
+  import was the only extensionless relative import in `src/`, so consumers on `node16`/
+  `nodenext` - the recommended setting for modern Node projects - got `TS2834` from inside
+  `dist/agent.d.ts`. Now imports `./message.js`, matching every other module.
+
+- **The three thread-state endpoints rejected string thread IDs.** `threadState()`,
+  `updateThreadState()`, and `clearThreadState()` typed `threadId` as `number`, while every
+  other thread method (`threadDetails`, `threadMessages`, `addThreadMessages`, `singleMessage`,
+  `deleteMessage`, `deleteThread`) already accepted `string | number`. The server types
+  `thread_id` as a string in its request schemas, so the three outliers could not be passed a
+  thread ID straight from a response without a cast. All three now take `string | number`,
+  matching the rest of the surface.
+
+  This widens a parameter type, so existing calls passing a `number` keep compiling.
+
+### Added
+
+- `normalizeToolParameters(parameters?)`, exported from `tools.ts` - applies the JSON Schema
+  defaults (`type: 'object'`, `properties: {}`, `required: []`) to a partial tool schema.
+- README: a version-compatibility table mapping client versions to `10xscale-agentflow-cli`
+  (API server) and `10xscale-agentflow` (core) versions, since the three packages version
+  independently and their numbers do not line up.
+
+---
+
 ## [0.3.0] - 2026-07-21
 
 ### Fixed
@@ -101,6 +183,7 @@ Initial entry in this changelog. Releases before `0.2.0` were not tracked here.
 - Added the realtime audio client (`client.realtime(...)` returning `RealtimeSession`).
 - Added dual ESM/CJS exports.
 
-[Unreleased]: https://github.com/10xHub/agentflow/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/10xHub/agentflow/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/10xHub/agentflow/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/10xHub/agentflow/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/10xHub/agentflow/releases/tag/v0.2.0

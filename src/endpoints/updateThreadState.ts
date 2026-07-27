@@ -21,7 +21,7 @@ export interface UpdateThreadStateResponse {
 
 export async function updateThreadState(
   context: UpdateThreadStateContext,
-  threadId: number,
+  threadId: string | number,
   request: UpdateThreadStateRequest
 ): Promise<UpdateThreadStateResponse> {
   try {

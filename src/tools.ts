@@ -5,10 +5,35 @@ export interface ToolHandler {
   (args: any): Promise<any>;
 }
 
+/**
+ * JSON Schema describing a tool's arguments.
+ *
+ * `properties` and `required` are optional, matching JSON Schema itself: a tool
+ * whose arguments are all optional needs neither, and a tool that takes no
+ * arguments can be declared as `{ type: 'object' }`. Additional JSON Schema
+ * keywords (`additionalProperties`, `$defs`, ...) are passed through untouched.
+ */
 export interface ToolParameter {
   type: string;
-  properties: Record<string, any>;
-  required: string[];
+  properties?: Record<string, any>;
+  required?: string[];
+  [key: string]: unknown;
+}
+
+/**
+ * Fill in the JSON Schema defaults a tool declaration may leave out, so the
+ * wire format sent to the server is always a complete object schema.
+ */
+export function normalizeToolParameters(parameters?: ToolParameter): ToolParameter {
+  const source: Partial<ToolParameter> = parameters ?? {};
+  const { type, properties, required, ...rest } = source;
+
+  return {
+    ...rest,
+    type: type ?? 'object',
+    properties: properties ?? {},
+    required: required ?? [],
+  };
 }
 
 export interface Tool {
@@ -118,11 +143,7 @@ export class ToolExecutor {
         function: {
           name: name,
           description: func.description || `Execute ${name}`,
-          parameters: func.parameters || {
-            type: 'object',
-            properties: {},
-            required: [],
-          },
+          parameters: normalizeToolParameters(func.parameters),
         },
       };
       openaiTools.push(tool);

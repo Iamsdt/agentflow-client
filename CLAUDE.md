@@ -5,7 +5,7 @@ API server it talks to, see `agentflow-api/CLAUDE.md`; for the core framework se
 `agentflow/CLAUDE.md`; for the monorepo overview see the workspace-root `CLAUDE.md`.
 
 - Package name (npm): `@10xscale/agentflow-client`
-- Version: `0.2.0` · License: MIT · `"type": "module"` (ESM-first)
+- Version: `0.4.0` · License: MIT · `"type": "module"` (ESM-first)
 - Runtime: Node >= 18 (uses global `fetch`); also browser-targetable
 - Language: TypeScript 5+, built with `tsc` + Vite 7, tested with Vitest 3
 
