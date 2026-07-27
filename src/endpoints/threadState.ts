@@ -16,7 +16,7 @@ export interface ThreadStateResponse {
 
 export async function threadState(
   context: ThreadStateContext,
-  threadId: number
+  threadId: string | number
 ): Promise<ThreadStateResponse> {
   try {
     if (context.debug) {

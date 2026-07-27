@@ -1,4 +1,4 @@
-import { ToolRegistration, ToolExecutor } from './tools.js';
+import { ToolRegistration, ToolExecutor, normalizeToolParameters } from './tools.js';
 import { Message } from './message.js';
 import { ping, PingContext, PingResponse } from './endpoints/ping.js';
 import { graph, GraphContext, GraphResponse } from './endpoints/graph.js';
@@ -284,7 +284,7 @@ export class AgentFlowClient {
       node_name: reg.node,
       name: reg.name,
       description: reg.description || '',
-      parameters: reg.parameters || {},
+      parameters: normalizeToolParameters(reg.parameters),
     }));
 
     const context = this.createContext<SetupGraphContext>();
@@ -392,7 +392,7 @@ export class AgentFlowClient {
    * @param threadId - The ID of the thread to fetch state for
    * @returns ThreadStateResponse containing the thread's current state
    */
-  async threadState(threadId: number): Promise<ThreadStateResponse> {
+  async threadState(threadId: string | number): Promise<ThreadStateResponse> {
     const context = this.createContext<ThreadStateContext>();
 
     return threadState(context, threadId);
@@ -406,7 +406,7 @@ export class AgentFlowClient {
    * @returns UpdateThreadStateResponse with the updated state
    */
   async updateThreadState(
-    threadId: number,
+    threadId: string | number,
     config: Record<string, any>,
     state: any // AgentState
   ): Promise<UpdateThreadStateResponse> {
@@ -425,7 +425,7 @@ export class AgentFlowClient {
    * @param threadId - The ID of the thread to clear state for
    * @returns ClearThreadStateResponse with the clear operation result
    */
-  async clearThreadState(threadId: number): Promise<ClearThreadStateResponse> {
+  async clearThreadState(threadId: string | number): Promise<ClearThreadStateResponse> {
     const context = this.createContext<ClearThreadStateContext>();
 
     return clearThreadState(context, threadId);

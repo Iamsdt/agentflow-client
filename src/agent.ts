@@ -1,4 +1,4 @@
-import { Message } from './message';
+import { Message } from './message.js';
 
 // Define ExecutionMeta interface
 interface ExecutionMeta {

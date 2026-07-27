@@ -26,6 +26,23 @@ yarn add @10xscale/agentflow-client
 pnpm add @10xscale/agentflow-client
 ```
 
+### Version compatibility
+
+This package versions independently of the Python packages, so the numbers do not line up. Pick
+versions by the table below rather than by matching version numbers:
+
+| `@10xscale/agentflow-client` (npm) | `10xscale-agentflow-cli` (API server) | `10xscale-agentflow` (core) |
+| ---------------------------------- | ------------------------------------- | --------------------------- |
+| 0.4.x                              | >= 0.5.0                              | >= 0.9.0                    |
+| 0.3.x                              | >= 0.5.0                              | >= 0.9.0                    |
+
+The client version tracks the **API server** (`10xscale-agentflow-cli`), which is what it talks to;
+the core version follows from whatever the server requires (the CLI pins
+`10xscale-agentflow>=0.9.0`). Client 0.3.x and later need server >= 0.5.0 specifically for
+`graphTools()` and `observability()`; the invoke, stream, thread, memory, and file endpoints work
+against older servers too. Client releases before 0.3.0 are not supported - upgrade rather than
+pinning them.
+
 ## 🚀 Quick Start
 
 ### Basic Usage
@@ -135,7 +152,7 @@ const msg = Message.withFile('Summarize this document', upload.data.file_id, upl
 
 ### Tool Registration
 
-**⚠️ Important:** Remote tools (registered client-side) should **only** be used for browser-level APIs like `localStorage`, `navigator.geolocation`, etc. For most operations (database queries, external API calls, calculations), define your tools in the Python backend instead. See [Tools Guide](docs/tools-guide.md#remote-tools-vs-backend-tools) for details.
+**⚠️ Important:** Remote tools (registered client-side) should **only** be used for browser-level APIs like `localStorage`, `navigator.geolocation`, etc. For most operations (database queries, external API calls, calculations), define your tools in the Python backend instead. See [How to register remote tools](https://agentflow.10xscale.ai/docs/how-to/client/register-remote-tools) for details.
 
 ```typescript
 // Register custom tools for agent execution (ONLY for browser APIs)
@@ -160,25 +177,56 @@ client.registerTool({
 const result = await client.invoke([Message.text_message('What is the weather in NYC?', 'user')]);
 ```
 
+`parameters` is a plain JSON Schema, and `properties` / `required` are both optional. A tool whose
+arguments are all optional needs no `required`, and a tool that takes no arguments needs neither:
+
+```typescript
+client.registerTool({
+  node: 'assistant',
+  name: 'read_terminal',
+  description: 'Read recent terminal output',
+  parameters: {
+    type: 'object',
+    properties: {
+      last_chars: { type: 'integer', description: 'Defaults to 2000' },
+    },
+  },
+  handler: async ({ last_chars = 2000 }) => readTerminal(last_chars),
+});
+
+client.registerTool({
+  node: 'assistant',
+  name: 'read_diff',
+  description: 'Read the current diff',
+  parameters: { type: 'object' }, // or omit `parameters` entirely
+  handler: async () => getDiff(),
+});
+```
+
+The missing keywords are filled in (`properties: {}`, `required: []`) when the tool definition is
+sent to the server, so the schema the model sees is always complete.
+
 ## 📚 Documentation
+
+Full documentation lives at **[agentflow.10xscale.ai](https://agentflow.10xscale.ai/docs/get-started)**.
 
 ### Getting Started
 
-- **[Getting Started Guide](docs/getting-started.md)** - Complete setup and first steps
-- **[API Reference](docs/api-reference.md)** - Complete API documentation
-- **[TypeScript Types](docs/typescript-types.md)** - Type definitions and usage
+- **[Connect a client](https://agentflow.10xscale.ai/docs/get-started/connect-client)** - Setup and first request
+- **[`AgentFlowClient` reference](https://agentflow.10xscale.ai/docs/reference/client/agentflow-client)** - Constructor config and every method
+- **[`Message` and content blocks](https://agentflow.10xscale.ai/docs/reference/client/message)** - The message and content-block types
 
 ### Core Concepts
 
-- **[Invoke API](docs/invoke-usage.md)** - Request/response pattern with tool execution
-- **[Stream API](docs/stream-usage.md)** - Real-time streaming responses
-- **[State Schema](docs/state-schema-guide.md)** - Dynamic state management and validation
-- **[Tools Guide](docs/tools-guide.md)** - Tool registration and execution ⚠️ **Important: Remote vs Backend tools**
+- **[Invoke API](https://agentflow.10xscale.ai/docs/reference/client/invoke)** - Request/response pattern with tool execution
+- **[Stream API](https://agentflow.10xscale.ai/docs/reference/client/stream)** - Real-time streaming responses
+- **[Graph and state schema](https://agentflow.10xscale.ai/docs/reference/client/graph)** - `graphStateSchema()` and graph lifecycle
+- **[Tools reference](https://agentflow.10xscale.ai/docs/reference/client/tools)** - Tool registration and execution ⚠️ **Important: Remote vs Backend tools**
 
 ### Reference
 
-- **[Quick References](docs/)** - Quick refs for stream and state schema APIs
-- **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+- **[Reference overview](https://agentflow.10xscale.ai/docs/reference)** - Python library, REST/WebSocket API, CLI, and TypeScript client
+- **[Troubleshooting](https://agentflow.10xscale.ai/docs/troubleshooting/client)** - Common issues and solutions
 
 ## 🎯 Key APIs
 
@@ -344,9 +392,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- 📚 [Documentation](docs/)
-- 🐛 [Issue Tracker](https://github.com/Iamsdt/agentflow-client/issues)
-- 💬 [Discussions](https://github.com/Iamsdt/agentflow-client/discussions)
+- 📚 [Documentation](https://agentflow.10xscale.ai/docs/get-started)
+- 🐛 [Issue Tracker](https://github.com/10xHub/agentflow-client/issues)
 
 ## 🙏 Acknowledgments
 
