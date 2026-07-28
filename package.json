@@ -78,9 +78,9 @@
     "typescript",
     "api-client"
   ],
-  "author": "10xScale <contact@10xscale.ai>",
+  "author": "Shudipto Trafder <shudiptotrafder@gmail.com>",
   "contributors": [
-    "Shudipto Trafder <shudiptotrafder@gmail.com>"
+    "10xScale <contact@10xscale.ai>"
   ],
   "license": "MIT",
   "engines": {
