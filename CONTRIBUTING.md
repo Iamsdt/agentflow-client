@@ -109,3 +109,8 @@ git push --follow-tags
 The release workflow runs the full CI suite against the tag, refuses to proceed if the tag
 does not match `package.json`, and creates the GitHub release. Publishing to npm is a
 deliberate manual `npm publish`.
+
+## License
+
+Agentflow is [MIT licensed](LICENSE) and made by [10xScale](https://10xscale.ai). Contributions
+are accepted under the same license.

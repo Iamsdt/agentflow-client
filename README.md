@@ -388,7 +388,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Agentflow is [MIT licensed](https://github.com/10xHub/agentflow-client/blob/master/LICENSE) and
+made by [10xScale](https://10xscale.ai). Contributions are accepted under the same license.
 
 ## 🆘 Support
 
